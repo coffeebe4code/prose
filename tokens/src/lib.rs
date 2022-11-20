@@ -30,6 +30,8 @@ pub enum Token {
     U32,
     #[token("i64")]
     I64,
+    #[token("u64")]
+    U64,
     #[token("i16")]
     I16,
     #[token("u16")]

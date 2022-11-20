@@ -1,44 +1,62 @@
-use logos::{Lexer, Logos, Span};
-use std::error::Error;
-
+use lexeme::Lexeme;
+use logos::Lexer;
 use tokens::Token;
 
 pub struct ProseLexer<'a> {
-    curr_token: Option<Token>,
+    current: Option<Lexeme<'a>>,
     lexer: Lexer<'a, Token>,
-}
-pub struct LexObj {
-    token: Token,
-    span: Span,
-    str_slice: String,
-}
-
-trait Lexable {
-    fn ret(&mut self) -> Option<LexObj>;
-}
-
-impl<'a> Lexable for Lexer<'a, Token> {
-    fn ret(&mut self) -> Option<LexObj> {
-        let tok = self.next();
-        match tok {
-            Some(t) => Some(LexObj {
-                token: t,
-                span: self.span(),
-                str_slice: String::from(self.slice()),
-            }),
-            None => None,
-        }
-    }
 }
 
 impl<'a> ProseLexer<'a> {
-    pub fn new(buffer: &'a str) -> Self {
-        ProseLexer {
-            curr_token: None,
-            lexer: Token::lexer(buffer),
+    pub fn new(lexer: Lexer<'a, Token>) -> Self {
+        return ProseLexer {
+            current: None,
+            lexer,
+        };
+    }
+    pub fn peek(&mut self) -> Option<Token> {
+        if self.current.is_none() {
+            self.current = self.lexer.next_lexeme();
+        }
+        match &self.current {
+            Some(val) => {
+                return Some(val.token);
+            }
+            None => None,
         }
     }
-    pub fn current_token(&self) -> Option<Token> {
-        return self.curr_token;
+    pub fn has_token_consume(&mut self, token: Token) -> bool {
+        match self.peek() {
+            Some(tok) => {
+                if tok == token {
+                    self.collect();
+                    return true;
+                }
+                return false;
+            }
+            None => false,
+        }
+    }
+    pub fn collect(&mut self) -> Option<Lexeme<'a>> {
+        let temp = self.current.clone();
+        self.current = None;
+        return temp;
+    }
+}
+
+pub trait Lexable<'a> {
+    fn next_lexeme(&mut self) -> Option<Lexeme<'a>>;
+}
+
+impl<'a> Lexable<'a> for Lexer<'a, Token> {
+    fn next_lexeme(&mut self) -> Option<Lexeme<'a>> {
+        let tok = self.next();
+        match tok {
+            Some(t) => Some(Lexeme {
+                token: t,
+                contents: self.slice(),
+            }),
+            None => None,
+        }
     }
 }

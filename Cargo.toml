@@ -2,4 +2,7 @@
 members = [
   "tokens",
   "lexer",
+  "parser",
+  "ast",
+  "lexeme",
 ]
