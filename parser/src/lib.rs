@@ -8,7 +8,7 @@ pub struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     pub fn ident(&mut self) -> Option<Box<Expr<'a>>> {
-        if self.lexer.peek()? == Token::Symbol {
+        if self.lexer.peek()?.is_kind(Token::Symbol) {
             let lexeme = self.lexer.collect().expect("error");
             let expr = Box::new(Expr::Symbol(lexeme));
             return Some(expr);
@@ -22,6 +22,28 @@ impl<'a> Parser<'a> {
             expr = self.ident();
         }
         return expr;
+    }
+    pub fn high_bin(&mut self) -> Option<Box<Expr<'a>>> {
+        let mut left = self.term();
+        if left.is_some() {
+            if self
+                .lexer
+                .peek()?
+                .is_of_kind(&[Token::Div, Token::Mul, Token::Mod])
+            {
+                let bin = self.lexer.collect().expect("error").token;
+                let right = self.term();
+                if right.is_none() {
+                    return right;
+                }
+                left = Some(Box::new(Expr::BinOp(
+                    left.expect("error"),
+                    bin,
+                    right.expect("error"),
+                )));
+            }
+        }
+        return left;
     }
     pub fn num(&mut self) -> Option<Box<Expr<'a>>> {
         if self.lexer.peek()? == Token::Num {

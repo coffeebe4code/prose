@@ -251,6 +251,15 @@ pub enum Token {
     Error,
 }
 
+impl Token {
+    pub fn is_kind(self, tok: Token) -> bool {
+        return tok == self;
+    }
+    pub fn is_of_kind(self, tokens: &[Token]) -> bool {
+        return tokens.iter().any(|&t| t == self);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
