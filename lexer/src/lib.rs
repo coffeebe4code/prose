@@ -1,5 +1,5 @@
 use lexeme::Lexeme;
-use logos::Lexer;
+use logos::{Lexer, Logos};
 use tokens::Token;
 
 pub struct ProseLexer<'a> {
@@ -8,10 +8,10 @@ pub struct ProseLexer<'a> {
 }
 
 impl<'a> ProseLexer<'a> {
-    pub fn new(lexer: Lexer<'a, Token>) -> Self {
+    pub fn new(buffer: &'a str) -> Self {
         return ProseLexer {
             current: None,
-            lexer,
+            lexer: Token::lexer(buffer),
         };
     }
     pub fn peek(&mut self) -> Option<Token> {

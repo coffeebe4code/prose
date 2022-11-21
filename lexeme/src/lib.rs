@@ -1,6 +1,6 @@
 use tokens::Token;
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Lexeme<'a> {
     pub token: Token,
     pub contents: &'a str,
