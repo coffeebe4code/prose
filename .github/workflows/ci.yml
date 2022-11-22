@@ -1,0 +1,61 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v1
+      - name: cache monthly
+        run: |
+          echo ("CACHE_MONTH=" + $(date '+%b %Y')) >> $env:GITHUB_ENV
+      - name: cache packages
+        id: cache-packages
+        uses: actions/cache@v3
+        with:
+          path: C:\ProgramData\chocolatey\lib\mingw
+          key: ${{ env.CACHE_MONTH }}
+      - name: setup mingw
+        if: steps.cache-mingw.outputs.cache-hit != 'true'
+        uses: coffeebe4code/setup-mingw@v1-beta-2
+        with:
+          static: 1
+          version: 10.2.0
+      - run: |
+          where gcc
+          gcc -Wall -Werror -Wextra -pthread -O3 ./nobuild-win.c -o ./nobuild
+          ./nobuild -r
+          ./target/e2e
+  build-linux-gcc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: build
+        run: |
+          set -e
+          cargo test --lib
+          cargo build --release
+  build-linux-clang:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: build
+        run: |
+          set -e
+          cargo test --lib
+          cargo build --release
+  build-macos:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: build
+        run: |
+          set -e
+          cargo test --lib
+          cargo build --release
