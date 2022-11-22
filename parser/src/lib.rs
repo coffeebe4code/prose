@@ -106,7 +106,7 @@ mod tests {
         let test = Box::new(Expr::UnaryOp(
             Box::new(Expr::Identity(Lexeme {
                 token: Token::Symbol,
-                contents: "x",
+                contents: "y",
             })),
             Token::Sub,
         ));
