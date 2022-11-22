@@ -5,4 +5,8 @@ members = [
   "parser",
   "ast",
   "lexeme",
+  "ir",
+  "vm",
+  "irssa",
+  "gen",
 ]
