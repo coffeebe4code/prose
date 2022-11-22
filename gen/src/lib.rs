@@ -1,5 +1,6 @@
 pub struct Gen {
     byte_len: usize,
+    pos: usize,
     binary: Vec<u8>,
 }
 
@@ -26,6 +27,11 @@ impl Gen {
     pub fn add64(&mut self, val: &[u8; 8]) -> &mut Self {
         self.binary.extend_from_slice(val);
         return self;
+    }
+    pub fn read32(self) -> Option<[u8; 4]> {
+        if self.pos + 4 =< 
+        let ret = self.binary[self.pos];
+        return ret;
     }
 }
 
