@@ -43,9 +43,11 @@ jobs:
   build-macos:
     runs-on: macOS-latest
     steps:
-      - uses: actions/checkout@v1
       - name: build
-        run: |
-          set -e
-          cargo test --lib
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: |
           cargo build --release
+          cargo test
