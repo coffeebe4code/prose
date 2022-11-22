@@ -10,30 +10,36 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v1
+      - name: build
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
       - run: |
-          set -e
-          cargo test --lib
           cargo build --release
+          cargo test
   build-linux-gcc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
       - name: build
-        run: |
-          set -e
-          cargo test --lib
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: |
           cargo build --release
+          cargo test
   build-linux-clang:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
       - name: build
-        run: |
-          set -e
-          cargo test --lib
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: |
           cargo build --release
+          cargo test
   build-macos:
     runs-on: macOS-latest
     steps:
