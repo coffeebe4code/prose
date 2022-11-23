@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 lexeme = { path="../lexeme" }
-tokens = { path="../tokens" }
+token = { path= "../token" }
 

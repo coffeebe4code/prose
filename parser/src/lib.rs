@@ -1,6 +1,6 @@
 use ast::Expr;
 use lexer::ProseLexer;
-use tokens::Token;
+use token::Token;
 
 pub struct Parser<'a> {
     lexer: ProseLexer<'a>,

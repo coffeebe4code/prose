@@ -1,5 +1,5 @@
 use lexeme::Lexeme;
-use tokens::Token;
+use token::Token;
 
 #[derive(Debug, PartialEq)]
 pub enum Expr<'a> {

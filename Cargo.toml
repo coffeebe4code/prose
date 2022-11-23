@@ -1,12 +1,14 @@
 [workspace]
 members = [
-  "tokens",
+  "token",
   "lexer",
   "parser",
   "ast",
   "lexeme",
   "ir",
   "vm",
-  "irssa",
   "gen",
+  "block",
+  "opcode",
+  "instr"
 ]
