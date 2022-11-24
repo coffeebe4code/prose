@@ -1,4 +1,4 @@
-use tokens::Token;
+use token::Token;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Lexeme<'a> {

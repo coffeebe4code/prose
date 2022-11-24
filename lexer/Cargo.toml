@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokens = { path= "../tokens" }
+token = { path= "../token" }
 lexeme = { path= "../lexeme" }
 logos = "0.12.0"

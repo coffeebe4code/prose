@@ -1,6 +1,6 @@
 use lexeme::Lexeme;
 use logos::{Lexer, Logos};
-use tokens::Token;
+use token::Token;
 
 pub struct ProseLexer<'a> {
     current: Option<Lexeme<'a>>,
