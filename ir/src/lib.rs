@@ -1,14 +1,22 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use block::Block;
+use gen::GenSource;
+
+pub struct IrSource {
+    reg_id: usize,
+    block_id: usize,
+    main_exit: usize,
+    blocks: Vec<Block>,
+    gen: GenSource,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl IrSource {
+    pub fn ir_new() -> Self {
+        IrSource {
+            reg_id: 0,
+            block_id: 0,
+            main_exit: 0,
+            blocks: vec![],
+            gen: GenSource::new(),
+        }
     }
 }
