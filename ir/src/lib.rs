@@ -1,15 +1,15 @@
 use block::Block;
 use gen::GenSource;
 
-pub struct IrSource {
+pub struct IrSource<'a> {
     reg_id: usize,
     block_id: usize,
     main_exit: usize,
-    blocks: Vec<Block>,
+    blocks: Vec<Block<'a>>,
     gen: GenSource,
 }
 
-impl IrSource {
+impl<'a> IrSource<'a> {
     pub fn ir_new() -> Self {
         IrSource {
             reg_id: 0,
