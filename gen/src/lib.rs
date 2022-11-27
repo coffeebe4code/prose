@@ -1,11 +1,11 @@
-pub struct Gen {
+pub struct GenSource {
     pos: usize,
     binary: Vec<u8>,
 }
 
-impl Gen {
+impl GenSource {
     pub fn new() -> Self {
-        Gen {
+        GenSource {
             pos: 0,
             binary: vec![],
         }
@@ -53,14 +53,14 @@ mod tests {
 
     #[test]
     fn it_should_insert_and_read() {
-        let mut gen = Gen::new();
+        let mut gen = GenSource::new();
         gen.add64(&[1; 8]);
         let val = gen.reset().read64();
         assert_eq!(val, &[1; 8]);
     }
     #[test]
     fn it_should_insert_with_pos() {
-        let mut gen = Gen::new();
+        let mut gen = GenSource::new();
         gen.add64(&[1; 8]);
         gen.add32(&[0; 4]);
         gen.reset();
