@@ -1,3 +1,4 @@
+use ast::Expr;
 use block::Block;
 use gen::GenSource;
 
@@ -18,5 +19,23 @@ impl<'a> IrSource<'a> {
             blocks: vec![],
             gen: GenSource::new(),
         }
+    }
+    pub fn ir_recurse(&mut self, recurse: &Expr) -> usize {
+        let mut result = 0;
+        match recurse {
+            Expr::Body(exprs) => {
+                for e in exprs.into_iter() {
+                    result = self.ir_recurse(e);
+                }
+            }
+            _ => {
+                panic!("not implemented");
+            }
+        }
+        return result;
+    }
+    pub fn ir_begin(&mut self, top: &Expr) -> &mut Self {
+        self.main_exit = self.ir_recurse(top);
+        return self;
     }
 }

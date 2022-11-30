@@ -1,6 +1,6 @@
 use token::Token;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Lexeme<'a> {
     pub token: Token,
     pub contents: &'a str,
@@ -23,7 +23,8 @@ impl<'a> Lexeme<'a> {
             | Token::F32
             | Token::F64
             | Token::D32
-            | Token::D64 => true,
+            | Token::D64
+            | Token::Bit => true,
             _ => false,
         }
     }

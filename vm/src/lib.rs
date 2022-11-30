@@ -24,7 +24,6 @@ impl Vm {
             match op {
                 _ => {
                     print!("{}", "developer error");
-                    Err(std::Errorself.regs[0]);
                 }
             }
         }

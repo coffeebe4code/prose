@@ -1,4 +1,4 @@
-use ast::Expr;
+use ast::*;
 use lexer::ProseLexer;
 use token::Token;
 
@@ -12,9 +12,9 @@ impl<'a> Parser<'a> {
     }
     pub fn ident(&mut self) -> Option<Box<Expr<'a>>> {
         if self.lexer.peek()?.is_kind(Token::Symbol) {
-            let lexeme = self.lexer.collect().expect("error");
-            let expr = Box::new(Expr::Identity(lexeme));
-            return Some(expr);
+            let lexeme = self.lexer.collect().unwrap();
+            let expr = some_expr!(Identity, lexeme);
+            return expr;
         }
         return None;
     }
@@ -30,16 +30,12 @@ impl<'a> Parser<'a> {
         let mut left = self.term();
         if left.is_some() {
             if self.lexer.peek()?.is_of_kind(&[Token::Plus, Token::Sub]) {
-                let bin = self.lexer.collect().expect("error").token;
+                let bin = self.lexer.collect().unwrap().token;
                 let right = self.term();
                 if right.is_none() {
                     return right;
                 }
-                left = Some(Box::new(Expr::BinOp(
-                    left.expect("error"),
-                    bin,
-                    right.expect("error"),
-                )));
+                left = some_expr!(BinOp, left.unwrap(), bin, right.unwrap());
             }
         }
         return left;
@@ -52,25 +48,21 @@ impl<'a> Parser<'a> {
                 .peek()?
                 .is_of_kind(&[Token::Div, Token::Mul, Token::Mod])
             {
-                let bin = self.lexer.collect().expect("error").token;
+                let bin = self.lexer.collect().unwrap().token;
                 let right = self.term();
                 if right.is_none() {
                     return right;
                 }
-                left = Some(Box::new(Expr::BinOp(
-                    left.expect("error"),
-                    bin,
-                    right.expect("error"),
-                )));
+                left = some_expr!(BinOp, left.unwrap(), bin, right.unwrap());
             }
         }
         return left;
     }
     pub fn num(&mut self) -> Option<Box<Expr<'a>>> {
         if self.lexer.peek()? == Token::Num {
-            let lexeme = self.lexer.collect().expect("error");
-            let expr = Expr::Number(lexeme);
-            return Some(Box::new(expr));
+            let lexeme = self.lexer.collect().unwrap();
+            let expr = some_expr!(Number, lexeme);
+            return expr;
         }
         return None;
     }
@@ -85,7 +77,7 @@ impl<'a> Parser<'a> {
             }
             match expr {
                 Some(val) => {
-                    expr = Some(Box::new(Expr::UnaryOp(val, token)));
+                    expr = some_expr!(UnaryOp, val, token);
                 }
                 None => (),
             }

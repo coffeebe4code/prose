@@ -1,6 +1,6 @@
 use logos::Logos;
 
-#[derive(Logos, Debug, PartialEq, Clone, Copy)]
+#[derive(Logos, Copy, Clone, Debug, PartialEq)]
 pub enum Token {
     #[token("import")]
     Import,
@@ -256,7 +256,7 @@ impl Token {
         return tok == self;
     }
     pub fn is_of_kind(self, tokens: &[Token]) -> bool {
-        return tokens.iter().any(|&t| t == self);
+        return tokens.iter().any(|t| *t == self);
     }
 }
 
