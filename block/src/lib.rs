@@ -11,11 +11,11 @@ pub enum BlockKind {
 }
 
 pub struct Block<'a> {
-    kind: BlockKind,
+    pub kind: BlockKind,
     preds: Vec<&'a Block<'a>>,
     succs: Vec<&'a Block<'a>>,
-    instructions: Vec<Instr>,
-    id: usize,
+    instructions: Vec<&'a Instr>,
+    pub id: usize,
 }
 
 impl<'a> Block<'a> {
@@ -27,5 +27,14 @@ impl<'a> Block<'a> {
             instructions: vec![],
             id,
         }
+    }
+    pub fn insert_instr(&mut self, instr: &'a Instr) -> () {
+        self.instructions.push(instr);
+    }
+    pub fn insert_pred(&mut self, pred: &'a Block<'a>) -> () {
+        self.preds.push(pred);
+    }
+    pub fn insert_succ(&mut self, succ: &'a Block<'a>) -> () {
+        self.succs.push(succ);
     }
 }
