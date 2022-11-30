@@ -1,7 +1,5 @@
 #[cfg(target_pointer_width = "64")]
 static OFFSET_HASH_BASE: usize = 14695981039346656037;
-#[cfg(target_pointer_width = "32")]
-static OFFSET_HASH_BASE: usize = 2166136261;
 
 pub fn hash(value: &str) -> usize {
     let mut result: usize = 0;
