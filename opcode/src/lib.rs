@@ -126,5 +126,6 @@ mod tests {
     #[test]
     fn it_works() {
         assert_eq!(Op::from32(99), Op::OpError);
+        assert_eq!(Op::from32(0), Op::NoOp);
     }
 }

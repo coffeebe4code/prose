@@ -10,11 +10,6 @@ impl GenSource {
             binary: vec![],
         }
     }
-    pub fn add8(&mut self, val: u8) -> &mut Self {
-        self.binary.push(val);
-        self.pos += 1;
-        return self;
-    }
     pub fn add32(&mut self, val: &[u8; 4]) -> &mut Self {
         self.binary.extend_from_slice(val);
         self.pos += 4;
@@ -34,6 +29,9 @@ impl GenSource {
         let ret = &self.binary[self.pos..self.pos + 8];
         self.pos += 8;
         return ret;
+    }
+    pub fn is_64_aligned(&self) -> bool {
+        (&self.binary[self.pos] as *const u8 as usize) % 8 == 0
     }
     pub fn get_len(&self) -> usize {
         return self.binary.len();
