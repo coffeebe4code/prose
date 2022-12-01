@@ -10,7 +10,6 @@ members = [
   "gen",
   "block",
   "opcode",
-  "gslt",
   "hash",
   "perror",
   "instr"
