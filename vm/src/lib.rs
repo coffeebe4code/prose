@@ -1,5 +1,4 @@
 use gen::GenSource;
-use instr::Instr;
 use opcode::Op;
 
 pub struct Vm {

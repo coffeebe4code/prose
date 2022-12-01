@@ -10,13 +10,13 @@ impl GenSource {
             binary: vec![],
         }
     }
-    pub fn add32(&mut self, val: &[u8; 4]) -> &mut Self {
-        self.binary.extend_from_slice(val);
+    pub fn add32(&mut self, val: [u8; 4]) -> &mut Self {
+        self.binary.extend_from_slice(&val);
         self.pos += 4;
         return self;
     }
-    pub fn add64(&mut self, val: &[u8; 8]) -> &mut Self {
-        self.binary.extend_from_slice(val);
+    pub fn add64(&mut self, val: [u8; 8]) -> &mut Self {
+        self.binary.extend_from_slice(&val);
         self.pos += 8;
         return self;
     }
@@ -52,19 +52,19 @@ mod tests {
     #[test]
     fn it_should_insert_and_read() {
         let mut gen = GenSource::new();
-        gen.add64(&[1; 8]);
+        gen.add64([1u8; 8]);
         let val = gen.reset().read64();
         assert_eq!(val, &[1; 8]);
     }
     #[test]
     fn it_should_insert_with_pos() {
         let mut gen = GenSource::new();
-        gen.add64(&[1; 8]);
-        gen.add32(&[0; 4]);
+        gen.add64([1u8; 8]);
+        gen.add32([0u8; 4]);
         gen.reset();
-        assert_eq!(gen.read64(), &[1; 8]);
+        assert_eq!(gen.read64(), [1; 8]);
         assert_eq!(gen.get_len(), 12);
         assert_eq!(gen.get_remaining(), 4);
-        assert_eq!(gen.read32(), &[0; 4]);
+        assert_eq!(gen.read32(), [0; 4]);
     }
 }
