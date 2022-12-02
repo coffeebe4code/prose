@@ -38,7 +38,7 @@ impl<'a> ProseLexer<'a> {
         }
     }
     pub fn collect(&mut self) -> Option<Lexeme<'a>> {
-        let temp = self.current.clone();
+        let temp = self.current;
         self.current = None;
         return temp;
     }

@@ -9,3 +9,5 @@ edition = "2021"
 block = { path="../block" }
 ast = { path="../ast" }
 gen = { path="../gen" }
+opcode = { path="../opcode" }
+instr = { path="../instr" }

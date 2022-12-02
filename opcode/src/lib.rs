@@ -1,3 +1,8 @@
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+use std::convert::TryFrom;
+
+#[derive(Debug, Eq, PartialEq, TryFromPrimitive, IntoPrimitive)]
+#[repr(u8)]
 pub enum Op {
     NoOp = 0,
     RetVoid,
@@ -104,4 +109,23 @@ pub enum Op {
     U8Div,
     U8Add,
     U8Mod,
+    #[num_enum(default)]
+    OpError,
+}
+
+impl Op {
+    pub fn from32(bytes: u8) -> Op {
+        return Op::try_from(bytes).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(Op::from32(99), Op::OpError);
+        assert_eq!(Op::from32(0), Op::NoOp);
+    }
 }

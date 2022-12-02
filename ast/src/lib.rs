@@ -10,3 +10,10 @@ pub enum Expr<'a> {
     Number(Lexeme<'a>),
     Single(Token),
 }
+
+#[macro_export]
+macro_rules! some_expr {
+    ($val:ident, $($inner:tt)*) => {
+        Some(Box::new(Expr::$val($($inner)*)));
+    };
+}
