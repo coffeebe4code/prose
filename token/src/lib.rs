@@ -213,7 +213,7 @@ pub enum Token {
     #[token("&&")]
     AndLog,
     #[token("||")]
-    OrgLog,
+    OrLog,
     #[token("!=")]
     NotEquality,
     #[token("==")]
@@ -236,6 +236,8 @@ pub enum Token {
     MulAs,
     #[token("%=")]
     ModAs,
+    #[token("&=")]
+    AndAs,
 
     #[regex("[a-zA-Z]+")]
     Symbol,

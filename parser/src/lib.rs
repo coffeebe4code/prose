@@ -16,7 +16,16 @@ impl<'a> Parser<'a> {
     }
     pub fn term(&mut self) -> Option<Box<Expr<'a>>> {
         let mut expr: Option<Box<Expr<'a>>>;
-        expr = self.num();
+        expr = self.parse_true();
+        if expr.is_none() {
+            expr = self.parse_false();
+        }
+        if expr.is_none() {
+            expr = self.parse_null();
+        }
+        if expr.is_none() {
+            expr = self.num();
+        }
         if expr.is_none() {
             expr = self.ident();
         }
@@ -33,6 +42,97 @@ impl<'a> Parser<'a> {
     pub fn parse_null(&mut self) -> Option<Box<Expr<'a>>> {
         let lexeme = self.lexer.collect_if(Token::Null)?;
         return some_expr!(Single, lexeme.token);
+    }
+    pub fn val_type(&mut self) -> Option<Box<Expr<'a>>> {
+        let lexeme = self.lexer.collect_if(Token::Null)?;
+        return some_expr!(Single, lexeme.token);
+    }
+    pub fn parse_return(&mut self) -> Option<Box<Expr<'a>>> {
+        //TODO::reevaluate if need optional no return and how that looks in ebnf.
+        self.lexer.collect_if(Token::Return)?;
+        let expr = self.or_log();
+        let semicolon = self.lexer.collect_if(Token::SColon);
+        return some_expr!(RetFn, expr, semicolon.is_some());
+    }
+    pub fn inner_asgnmt(&mut self) -> Option<Box<Expr<'a>>> {
+        let mutability =
+            self.lexer.collect_of_if(&[Token::Mut, Token::Const])?.token == Token::Const;
+        //TODO:: error here on out if none
+        let ident = self.ident()?;
+        let colon = self.lexer.collect_if(Token::Colon);
+        let mut sig = None;
+        if colon.is_some() {
+            sig = self.signature();
+        }
+        let assignment = self.lexer.collect_if(Token::As)?.token;
+        let expr = self.or_log()?;
+        let semicolon = self.lexer.collect_if(Token::SColon);
+        return some_expr!(
+            Assignment,
+            mutability,
+            ident,
+            sig,
+            assignment,
+            expr,
+            semicolon.is_some()
+        );
+    }
+    pub fn reassignment(&mut self) -> Option<Box<Expr<'a>>> {
+        let ident = self.ident()?;
+        let asop = self
+            .lexer
+            .collect_of_if(&[
+                Token::As,
+                Token::DivAs,
+                Token::SubAs,
+                Token::AddAs,
+                Token::MulAs,
+                Token::AndAs,
+                Token::XorAs,
+                Token::OrAs,
+            ])?
+            .token;
+        let expr = self.or_log()?;
+        let semicolon = self.lexer.collect_if(Token::SColon);
+        return some_expr!(Reassignment, ident, asop, expr, semicolon.is_some());
+    }
+    pub fn signature(&mut self) -> Option<Box<Expr<'a>>> {
+        //TODO::Impl
+        return None;
+    }
+    pub fn comp(&mut self) -> Option<Box<Expr<'a>>> {
+        let left = self.low_bin()?;
+        let bin = self
+            .lexer
+            .collect_of_if(&[Token::Gt, Token::GtEq, Token::Lt, Token::LtEq])?
+            .token;
+        // TODO:: Error if expr is none
+        let right = self.low_bin()?;
+        return some_expr!(BinOp, left, bin, right);
+    }
+    pub fn or_log(&mut self) -> Option<Box<Expr<'a>>> {
+        let left = self.and_log()?;
+        let bin = self.lexer.collect_of_if(&[Token::OrLog])?.token;
+        // TODO:: Error if expr is none
+        let right = self.and_log()?;
+        return some_expr!(BinOp, left, bin, right);
+    }
+    pub fn and_log(&mut self) -> Option<Box<Expr<'a>>> {
+        let left = self.equality()?;
+        let bin = self.lexer.collect_of_if(&[Token::AndLog])?.token;
+        // TODO:: Error if expr is none
+        let right = self.equality()?;
+        return some_expr!(BinOp, left, bin, right);
+    }
+    pub fn equality(&mut self) -> Option<Box<Expr<'a>>> {
+        let left = self.comp()?;
+        let bin = self
+            .lexer
+            .collect_of_if(&[Token::NotEquality, Token::Equality])?
+            .token;
+        // TODO:: Error if expr is none
+        let right = self.comp()?;
+        return some_expr!(BinOp, left, bin, right);
     }
     pub fn low_bin(&mut self) -> Option<Box<Expr<'a>>> {
         let left = self.term()?;

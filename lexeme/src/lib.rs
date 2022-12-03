@@ -29,7 +29,7 @@ impl<'a> Lexeme<'a> {
             _ => false,
         }
     }
-    pub fn is_(&self) -> bool {
+    pub fn is_val(&self) -> bool {
         match self.token {
             Token::U8
             | Token::U16
@@ -47,8 +47,6 @@ impl<'a> Lexeme<'a> {
             | Token::Bool
             | Token::Char
             | Token::Void
-            | Token::Rest
-            | Token::Never
             | Token::Bit => true,
             _ => false,
         }
