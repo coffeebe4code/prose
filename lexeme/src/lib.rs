@@ -24,6 +24,31 @@ impl<'a> Lexeme<'a> {
             | Token::F64
             | Token::D32
             | Token::D64
+            | Token::Byte
+            | Token::Bit => true,
+            _ => false,
+        }
+    }
+    pub fn is_(&self) -> bool {
+        match self.token {
+            Token::U8
+            | Token::U16
+            | Token::U32
+            | Token::U64
+            | Token::I8
+            | Token::I16
+            | Token::I32
+            | Token::I64
+            | Token::F32
+            | Token::F64
+            | Token::D32
+            | Token::D64
+            | Token::Byte
+            | Token::Bool
+            | Token::Char
+            | Token::Void
+            | Token::Rest
+            | Token::Never
             | Token::Bit => true,
             _ => false,
         }

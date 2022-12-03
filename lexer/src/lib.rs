@@ -14,6 +14,18 @@ impl<'a> ProseLexer<'a> {
             lexer: Token::lexer(buffer),
         };
     }
+    pub fn collect_if(&mut self, token: Token) -> Option<Lexeme<'a>> {
+        if self.peek()?.is_kind(token) {
+            return Some(self.collect().unwrap());
+        }
+        return None;
+    }
+    pub fn collect_of_if(&mut self, token: &[Token]) -> Option<Lexeme<'a>> {
+        if self.peek()?.is_of_kind(token) {
+            return Some(self.collect().unwrap());
+        }
+        return None;
+    }
     pub fn peek(&mut self) -> Option<Token> {
         if self.current.is_none() {
             self.current = self.lexer.next_lexeme();

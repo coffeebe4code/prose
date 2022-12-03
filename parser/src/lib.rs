@@ -11,12 +11,8 @@ impl<'a> Parser<'a> {
         Parser { lexer }
     }
     pub fn ident(&mut self) -> Option<Box<Expr<'a>>> {
-        if self.lexer.peek()?.is_kind(Token::Symbol) {
-            let lexeme = self.lexer.collect().unwrap();
-            let expr = some_expr!(Identity, lexeme);
-            return expr;
-        }
-        return None;
+        let lexeme = self.lexer.collect_if(Token::Symbol)?;
+        return some_expr!(Identity, lexeme);
     }
     pub fn term(&mut self) -> Option<Box<Expr<'a>>> {
         let mut expr: Option<Box<Expr<'a>>>;
@@ -26,63 +22,44 @@ impl<'a> Parser<'a> {
         }
         return expr;
     }
+    pub fn parse_true(&mut self) -> Option<Box<Expr<'a>>> {
+        let lexeme = self.lexer.collect_if(Token::True)?;
+        return some_expr!(Single, lexeme.token);
+    }
+    pub fn parse_false(&mut self) -> Option<Box<Expr<'a>>> {
+        let lexeme = self.lexer.collect_if(Token::False)?;
+        return some_expr!(Single, lexeme.token);
+    }
+    pub fn parse_null(&mut self) -> Option<Box<Expr<'a>>> {
+        let lexeme = self.lexer.collect_if(Token::Null)?;
+        return some_expr!(Single, lexeme.token);
+    }
     pub fn low_bin(&mut self) -> Option<Box<Expr<'a>>> {
-        let mut left = self.term();
-        if left.is_some() {
-            if self.lexer.peek()?.is_of_kind(&[Token::Plus, Token::Sub]) {
-                let bin = self.lexer.collect().unwrap().token;
-                let right = self.term();
-                if right.is_none() {
-                    return right;
-                }
-                left = some_expr!(BinOp, left.unwrap(), bin, right.unwrap());
-            }
-        }
-        return left;
+        let left = self.term()?;
+        let bin = self.lexer.collect_of_if(&[Token::Plus, Token::Sub])?.token;
+        let right = self.term()?;
+        return some_expr!(BinOp, left, bin, right);
     }
     pub fn high_bin(&mut self) -> Option<Box<Expr<'a>>> {
-        let mut left = self.term();
-        if left.is_some() {
-            if self
-                .lexer
-                .peek()?
-                .is_of_kind(&[Token::Div, Token::Mul, Token::Mod])
-            {
-                let bin = self.lexer.collect().unwrap().token;
-                let right = self.term();
-                if right.is_none() {
-                    return right;
-                }
-                left = some_expr!(BinOp, left.unwrap(), bin, right.unwrap());
-            }
-        }
-        return left;
+        let left = self.term()?;
+        let bin = self
+            .lexer
+            .collect_of_if(&[Token::Div, Token::Mul, Token::Mod])?
+            .token;
+        let right = self.term()?;
+        return some_expr!(BinOp, left, bin, right);
     }
     pub fn num(&mut self) -> Option<Box<Expr<'a>>> {
-        if self.lexer.peek()? == Token::Num {
-            let lexeme = self.lexer.collect().unwrap();
-            let expr = some_expr!(Number, lexeme);
-            return expr;
-        }
-        return None;
+        let lexeme = self.lexer.collect_if(Token::Num)?;
+        return some_expr!(Number, lexeme);
     }
     pub fn unary(&mut self) -> Option<Box<Expr<'a>>> {
-        let token = self.lexer.peek()?;
-        let mut expr: Option<Box<Expr<'a>>> = None;
-        if token == Token::Not || token == Token::Sub {
-            self.lexer.collect().expect("error");
-            expr = self.ident();
-            if expr.is_none() {
-                expr = self.unary();
-            }
-            match expr {
-                Some(val) => {
-                    expr = some_expr!(UnaryOp, val, token);
-                }
-                None => (),
-            }
+        let token = self.lexer.collect_of_if(&[Token::Not, Token::Sub])?.token;
+        let mut expr = self.ident();
+        if expr.is_none() {
+            expr = self.unary();
         }
-        return expr;
+        return some_expr!(UnaryOp, expr?, token);
     }
 }
 
