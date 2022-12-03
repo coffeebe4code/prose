@@ -37,6 +37,7 @@ impl<'a> Parser<'a> {
     pub fn low_bin(&mut self) -> Option<Box<Expr<'a>>> {
         let left = self.term()?;
         let bin = self.lexer.collect_of_if(&[Token::Plus, Token::Sub])?.token;
+        // TODO:: Error if expr is none
         let right = self.term()?;
         return some_expr!(BinOp, left, bin, right);
     }
@@ -46,6 +47,7 @@ impl<'a> Parser<'a> {
             .lexer
             .collect_of_if(&[Token::Div, Token::Mul, Token::Mod])?
             .token;
+        // TODO:: Error if expr is none
         let right = self.term()?;
         return some_expr!(BinOp, left, bin, right);
     }
@@ -59,6 +61,7 @@ impl<'a> Parser<'a> {
         if expr.is_none() {
             expr = self.unary();
         }
+        // TODO:: Error if expr is none
         return some_expr!(UnaryOp, expr?, token);
     }
 }
