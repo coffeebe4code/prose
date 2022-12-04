@@ -1,4 +1,5 @@
 use ast::*;
+use lexeme::Grabable;
 use lexer::ProseLexer;
 use token::Token;
 
@@ -54,19 +55,27 @@ impl<'a> Parser<'a> {
         let semicolon = self.lexer.collect_if(Token::SColon);
         return some_expr!(RetFn, expr, semicolon.is_some());
     }
-    pub fn inner_asgnmt(&mut self) -> Option<Box<Expr<'a>>> {
-        let mutability =
-            self.lexer.collect_of_if(&[Token::Mut, Token::Const])?.token == Token::Const;
+    pub fn inner_assignment(&mut self) -> Option<Box<Expr<'a>>> {
+        let mutability = self.lexer.collect_of_if(&[Token::Mut, Token::Const])?.token;
+        print!("1");
         //TODO:: error here on out if none
         let ident = self.ident()?;
+        print!("2");
         let colon = self.lexer.collect_if(Token::Colon);
+        print!("3");
         let mut sig = None;
+        print!("4");
         if colon.is_some() {
+            print!("1");
             sig = self.signature();
         }
+        print!("5");
         let assignment = self.lexer.collect_if(Token::As)?.token;
+        print!("6");
         let expr = self.or_log()?;
+        print!("7");
         let semicolon = self.lexer.collect_if(Token::SColon);
+        print!("8");
         return some_expr!(
             Assignment,
             mutability,
@@ -74,7 +83,7 @@ impl<'a> Parser<'a> {
             sig,
             assignment,
             expr,
-            semicolon.is_some()
+            semicolon.maybe_token()
         );
     }
     pub fn reassignment(&mut self) -> Option<Box<Expr<'a>>> {
@@ -94,7 +103,7 @@ impl<'a> Parser<'a> {
             .token;
         let expr = self.or_log()?;
         let semicolon = self.lexer.collect_if(Token::SColon);
-        return some_expr!(Reassignment, ident, asop, expr, semicolon.is_some());
+        return some_expr!(Reassignment, ident, asop, expr, semicolon.maybe_token());
     }
     pub fn signature(&mut self) -> Option<Box<Expr<'a>>> {
         //TODO::Impl
@@ -175,13 +184,66 @@ mod tests {
         let lexer = ProseLexer::new("-x");
         let mut parser = Parser::new(lexer);
         let result = parser.unary();
-        let test = Box::new(Expr::UnaryOp(
-            Box::new(Expr::Identity(Lexeme {
-                token: Token::Symbol,
-                contents: "x",
-            })),
-            Token::Sub,
-        ));
-        assert_eq!(result.unwrap(), test);
+        let test = some_expr!(
+            UnaryOp,
+            some_expr!(Identity, Lexeme::new("x", Token::Symbol)).unwrap(),
+            Token::Sub
+        );
+        assert_eq!(result.unwrap(), test.unwrap());
+    }
+    #[test]
+    fn it_should_parse_terminal() {
+        let lexer = ProseLexer::new("5");
+        let mut parser = Parser::new(lexer);
+        let result = parser.term();
+        let test = some_expr!(Number, Lexeme::new("5", Token::Num));
+        assert_eq!(result.unwrap(), test.unwrap());
+    }
+    #[test]
+    fn it_should_parse_low_bin() {
+        let lexer = ProseLexer::new("5 - 5");
+        let mut parser = Parser::new(lexer);
+        let result = parser.low_bin();
+        let left = some_expr!(Number, Lexeme::new("5", Token::Num));
+        let right = some_expr!(Number, Lexeme::new("5", Token::Num));
+        let test = some_expr!(BinOp, left.unwrap(), Token::Sub, right.unwrap());
+        assert_eq!(result.unwrap(), test.unwrap());
+    }
+    #[test]
+    fn it_should_parse_inner_assignment() {
+        let lexer = ProseLexer::new("const x = 5 + 5;");
+        let mut parser = Parser::new(lexer);
+        let result = parser.inner_assignment();
+        let left = some_expr!(Number, Lexeme::new("5", Token::Num));
+        let right = some_expr!(Number, Lexeme::new("5", Token::Num));
+        let ident = some_expr!(Identity, Lexeme::new("x", Token::Symbol));
+        let mutability = Token::Const;
+        let bin = some_expr!(BinOp, left.unwrap(), Token::Sub, right.unwrap());
+        let assignment = some_expr!(
+            Assignment,
+            mutability,
+            ident.unwrap(),
+            None,
+            Token::As,
+            bin.unwrap(),
+            Some(Token::SColon)
+        );
+        assert_eq!(result.unwrap(), assignment.unwrap());
+    }
+    #[test]
+    fn it_should_parse_reassignment() {
+        let lexer = ProseLexer::new("x += 5");
+        let mut parser = Parser::new(lexer);
+        let result = parser.inner_assignment();
+        let right = some_expr!(Number, Lexeme::new("5", Token::Num));
+        let ident = some_expr!(Identity, Lexeme::new("x", Token::Symbol));
+        let assignment = some_expr!(
+            Reassignment,
+            ident.unwrap(),
+            Token::AddAs,
+            right.unwrap(),
+            None
+        );
+        assert_eq!(result.unwrap(), assignment.unwrap());
     }
 }
