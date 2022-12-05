@@ -222,10 +222,6 @@ pub enum Token {
     NotLog,
     #[token("%")]
     Mod,
-    #[token("++")]
-    Inc,
-    #[token("--")]
-    Dec,
     #[token("+=")]
     AddAs,
     #[token("-=")]
