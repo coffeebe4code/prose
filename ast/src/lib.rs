@@ -4,9 +4,22 @@ use token::Token;
 #[derive(Debug, PartialEq)]
 pub enum Expr<'a> {
     Body(Vec<Expr<'a>>),
+    // mutability, identifier, signature, assignment, expr, semicolon
+    Assignment(
+        Token,
+        Box<Expr<'a>>,
+        Option<Box<Expr<'a>>>,
+        Token,
+        Box<Expr<'a>>,
+        Option<Token>,
+    ),
+    // identifier, asop, expr, semicolon
+    Reassignment(Box<Expr<'a>>, Token, Box<Expr<'a>>, Option<Token>),
+    // left expr, op, right expr
     BinOp(Box<Expr<'a>>, Token, Box<Expr<'a>>),
     UnaryOp(Box<Expr<'a>>, Token),
     Identity(Lexeme<'a>),
+    RetFn(Option<Box<Expr<'a>>>, bool),
     Number(Lexeme<'a>),
     Single(Token),
 }
