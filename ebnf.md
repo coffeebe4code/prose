@@ -1,10 +1,11 @@
-program => ( top )\* EOF
+```md
+program => ( top )* EOF
 
 signature => VAL_TYPE | "<" serial_types ">
 serial_types => IDENTIFIER | ( IDENTIFIER "," serial_types )
 
 top => "pub"? ( func_decl | body | expression | type_decl )
-func_decl => "fn" IDENTIFIER "(" arg_decl\* ")" body
+func_decl => "fn" IDENTIFIER "(" arg_decl* ")" body
 arg_decl => IDENTIFIER ( ":" signature )? | IDENTIFIER ( ":" signature )? "," argument
 type_decl => "type" IDENTIFIER (":" signature)? properties
 properties => "{" property+ "}"
@@ -13,17 +14,18 @@ body => "{" expression+ "}"
 expression => inner_asgnmt | reassignment | return
 return => "return" or_log? ";"?
 
-inner*asgnmt => ( "const" | "mut" ) IDENTIFIER ( ":" signature )? ( "=" ) or_log ";"?
+inner_asgnmt => ( "const" | "mut" ) IDENTIFIER ( ":" signature )? ( "=" ) or_log ";"?
 reassignment => IDENTIFIER ( "=" | "/=" | "-=" | "+=" | "\*=" | "&=" | "^=" | "|=" ) or_log ";"?
 or_log => and_log ( "||" and_log )*
-and*log => equality ( "&&" equality )*
-equality => comp ( ( "!=" | "==" ) comp )
-comp => low_bin ( ( ">" | ">=" | "<" | "<=" ) low_bin )
-low_bin => high_bin ( ( "-" | "+") high_bin )\*
-high_bin => unary ( ( "/" | "\*" | "%" ) unary )
+and_log => equality ( "&&" equality )*
+equality => comp ( ( "!=" | "==" ) comp )*
+comp => low_bin ( ( ">" | ">=" | "<" | "<=" ) low_bin )*
+low_bin => high_bin ( ( "-" | "+") high_bin )*
+high_bin => unary ( ( "/" | "\*" | "%" ) unary )*
 unary => ( "!" | "-" ) unary | TERMINAL
 
 TERMINAL => "true" | "false" | "null" | NUMBER | IDENTIFIER
 NUMBER => DIGIT+ ( "." DIGIT+ )?
-IDENTIFIER => < any ALPHA except "\_" > ( ALPHA | DIGIT )\*
-VAL_TYPE => <value types `is_val` in ./lex/lib.c>
+IDENTIFIER => < any ALPHA except "_" > ( ALPHA | DIGIT )*
+VAL_TYPE => <value types `is_val` in ./lexeme/lib.rs>
+```
