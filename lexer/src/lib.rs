@@ -21,7 +21,6 @@ impl<'a> ProseLexer<'a> {
         return None;
     }
     pub fn collect_of_if(&mut self, token: &[Token]) -> Option<Lexeme<'a>> {
-        println!("peek {:#?}", self.peek());
         if self.peek()?.is_of_kind(token) {
             return Some(self.collect().unwrap());
         }
