@@ -11,5 +11,6 @@ members = [
   "block",
   "opcode",
   "hash",
+  "ssa",
   "instr"
 ]

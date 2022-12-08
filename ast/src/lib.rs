@@ -2,25 +2,25 @@ use lexeme::Lexeme;
 use token::Token;
 
 #[derive(Debug, PartialEq)]
-pub enum Expr<'a> {
-    Body(Vec<Expr<'a>>),
+pub enum Expr<'source> {
+    Body(Vec<Expr<'source>>),
     // mutability, identifier, signature, assignment, expr, semicolon
     Assignment(
         Token,
-        Box<Expr<'a>>,
-        Option<Box<Expr<'a>>>,
+        Box<Expr<'source>>,
+        Option<Box<Expr<'source>>>,
         Token,
-        Box<Expr<'a>>,
+        Box<Expr<'source>>,
         Option<Token>,
     ),
     // identifier, asop, expr, semicolon
-    Reassignment(Box<Expr<'a>>, Token, Box<Expr<'a>>, Option<Token>),
+    Reassignment(Box<Expr<'source>>, Token, Box<Expr<'source>>, Option<Token>),
     // left expr, op, right expr
-    BinOp(Box<Expr<'a>>, Token, Box<Expr<'a>>),
-    UnaryOp(Box<Expr<'a>>, Token),
-    Identity(Lexeme<'a>),
-    RetFn(Option<Box<Expr<'a>>>, bool),
-    Number(Lexeme<'a>),
+    BinOp(Box<Expr<'source>>, Token, Box<Expr<'source>>),
+    UnaryOp(Box<Expr<'source>>, Token),
+    Identity(Lexeme<'source>),
+    RetFn(Option<Box<Expr<'source>>>, bool),
+    Number(Lexeme<'source>),
     Single(Token),
 }
 

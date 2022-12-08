@@ -1,25 +1,23 @@
-use ast::Expr;
+use ast::*;
 use block::Block;
 use gen::GenSource;
 use instr::*;
-use opcode::Op;
+use opcode::*;
 
-pub struct IrSource<'a> {
+pub struct IrSource<'block, 'source> {
     reg_id: usize,
     block_id: usize,
     main_exit: usize,
-    blocks: Vec<Block<'a>>,
-    gen: GenSource,
+    blocks: Vec<Block<'block, 'source>>,
 }
 
-impl<'a> IrSource<'a> {
+impl<'block, 'source> IrSource<'block, 'source> {
     pub fn new() -> Self {
         IrSource {
             reg_id: 0,
             block_id: 0,
             main_exit: 0,
             blocks: vec![],
-            gen: GenSource::new(),
         }
     }
     pub fn recurse(&mut self, recurse: &Expr) -> usize {
@@ -30,6 +28,10 @@ impl<'a> IrSource<'a> {
                     result = self.recurse(e);
                 }
             }
+            Expr::BinOp(leftexpr, token, rightexpr) => {
+                let left = self.recurse(leftexpr);
+                let right = self.recurse(rightexpr);
+            }
             _ => {
                 panic!("not implemented");
             }
@@ -38,14 +40,6 @@ impl<'a> IrSource<'a> {
     }
     pub fn begin(&mut self, top: &Expr) -> &mut Self {
         self.main_exit = self.recurse(top);
-        return self;
-    }
-    pub fn data_gen(&mut self, opcode: Op, data: usize) -> &mut Self {
-        if self.gen.is_64_aligned() {
-            let new_id = self.reg_inc();
-            self.gen.add32(instr_raw(opcode, new_id as u8, 0, 1));
-        }
-        self.gen.add64(data.to_ne_bytes());
         return self;
     }
     pub fn reg_inc(&mut self) -> usize {

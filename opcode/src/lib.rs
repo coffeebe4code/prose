@@ -1,7 +1,7 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::convert::TryFrom;
 
-#[derive(Debug, Eq, PartialEq, TryFromPrimitive, IntoPrimitive)]
+#[derive(Debug, Eq, Copy, Clone, PartialEq, TryFromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum Op {
     NoOp = 0,
@@ -117,6 +117,13 @@ impl Op {
     pub fn from32(bytes: u8) -> Op {
         return Op::try_from(bytes).unwrap();
     }
+}
+
+#[macro_export]
+macro_rules! bin_op {
+    ($val:ident) => {
+        Op::$val
+    };
 }
 
 #[cfg(test)]
