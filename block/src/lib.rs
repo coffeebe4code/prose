@@ -23,21 +23,21 @@ pub enum BlockKind {
 pub struct Block<'block, 'source> {
     pub kind: BlockKind,
     pub id: usize,
+    pub instructions: Vec<Instr>,
     vars: Vec<Var<'source>>,
     preds: Vec<&'block Block<'block, 'source>>,
     succs: Vec<&'block Block<'block, 'source>>,
-    instructions: Vec<Instr>,
 }
 
 impl<'block, 'source> Block<'block, 'source> {
     pub fn new(id: usize) -> Self {
         Block {
             kind: BlockKind::PlainBlock,
+            id,
+            instructions: vec![],
             vars: vec![],
             preds: vec![],
             succs: vec![],
-            instructions: vec![],
-            id,
         }
     }
     pub fn insert_instr(&mut self, instr: Instr) -> () {
