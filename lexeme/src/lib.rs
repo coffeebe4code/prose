@@ -1,16 +1,16 @@
 use token::Token;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Lexeme<'a> {
+pub struct Lexeme<'source> {
     pub token: Token,
-    pub contents: &'a str,
+    pub contents: &'source str,
 }
 
 pub trait Grabable {
     fn maybe_token(&self) -> Option<Token>;
 }
 
-impl<'a> Grabable for Option<Lexeme<'a>> {
+impl<'source> Grabable for Option<Lexeme<'source>> {
     fn maybe_token(&self) -> Option<Token> {
         match self {
             Some(lex) => {
@@ -23,8 +23,8 @@ impl<'a> Grabable for Option<Lexeme<'a>> {
     }
 }
 
-impl<'a> Lexeme<'a> {
-    pub fn new(contents: &'a str, token: Token) -> Self {
+impl<'source> Lexeme<'source> {
+    pub fn new(contents: &'source str, token: Token) -> Self {
         return Lexeme { token, contents };
     }
     pub fn is_num(&self) -> bool {

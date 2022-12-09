@@ -2,25 +2,25 @@ use lexeme::Lexeme;
 use logos::{Lexer, Logos};
 use token::Token;
 
-pub struct ProseLexer<'a> {
-    current: Option<Lexeme<'a>>,
-    lexer: Lexer<'a, Token>,
+pub struct ProseLexer<'source> {
+    current: Option<Lexeme<'source>>,
+    lexer: Lexer<'source, Token>,
 }
 
-impl<'a> ProseLexer<'a> {
-    pub fn new(buffer: &'a str) -> Self {
+impl<'source> ProseLexer<'source> {
+    pub fn new(buffer: &'source str) -> Self {
         return ProseLexer {
             current: None,
             lexer: Token::lexer(buffer),
         };
     }
-    pub fn collect_if(&mut self, token: Token) -> Option<Lexeme<'a>> {
+    pub fn collect_if(&mut self, token: Token) -> Option<Lexeme<'source>> {
         if self.peek()?.is_kind(token) {
             return Some(self.collect().unwrap());
         }
         return None;
     }
-    pub fn collect_of_if(&mut self, token: &[Token]) -> Option<Lexeme<'a>> {
+    pub fn collect_of_if(&mut self, token: &[Token]) -> Option<Lexeme<'source>> {
         if self.peek()?.is_of_kind(token) {
             return Some(self.collect().unwrap());
         }
@@ -49,19 +49,19 @@ impl<'a> ProseLexer<'a> {
             None => false,
         }
     }
-    pub fn collect(&mut self) -> Option<Lexeme<'a>> {
+    pub fn collect(&mut self) -> Option<Lexeme<'source>> {
         let temp = self.current;
         self.current = None;
         return temp;
     }
 }
 
-pub trait Lexable<'a> {
-    fn next_lexeme(&mut self) -> Option<Lexeme<'a>>;
+pub trait Lexable<'source> {
+    fn next_lexeme(&mut self) -> Option<Lexeme<'source>>;
 }
 
-impl<'a> Lexable<'a> for Lexer<'a, Token> {
-    fn next_lexeme(&mut self) -> Option<Lexeme<'a>> {
+impl<'source> Lexable<'source> for Lexer<'source, Token> {
+    fn next_lexeme(&mut self) -> Option<Lexeme<'source>> {
         let tok = self.next();
         match tok {
             Some(t) => Some(Lexeme {

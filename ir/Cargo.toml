@@ -11,3 +11,4 @@ ast = { path="../ast" }
 gen = { path="../gen" }
 opcode = { path="../opcode" }
 instr = { path="../instr" }
+token = { path="../token" }
