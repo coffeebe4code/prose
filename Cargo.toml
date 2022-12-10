@@ -1,4 +1,5 @@
 [workspace]
+doctest = false
 members = [
   "token",
   "lexer",
