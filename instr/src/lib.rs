@@ -9,7 +9,7 @@ pub enum Instr {
 }
 
 impl CompInstr {
-    pub fn new_op(op: Op, dst: u8, srcl: u8, srcr: u8) -> Self {
+    pub fn new(op: Op, dst: u8, srcl: u8, srcr: u8) -> Self {
         CompInstr::COperation(op, dst, srcl, srcr)
     }
     pub fn to_raw(&self) -> [u8; 4] {

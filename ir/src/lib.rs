@@ -1,6 +1,6 @@
 use ast::*;
-use block::Block;
-use gen::GenSource;
+use block::*;
+use gen::*;
 use instr::*;
 use opcode::*;
 use token::*;
@@ -34,12 +34,12 @@ impl<'block, 'source> IrSource<'block, 'source> {
                         return self.reg_inc();
                     }
                     _ => {
-                        panic!("not implemented");
+                        panic!("not implemented, token in recurse");
                     }
                 }
             }
             _ => {
-                panic!("not implemented");
+                panic!("not implemented, expr in recurse");
             }
         }
     }
@@ -48,15 +48,16 @@ impl<'block, 'source> IrSource<'block, 'source> {
         return self;
     }
     pub fn flush(self, gen: &mut GenSource) -> () {
-        for b in self.blocks.iter() {
-            for i in b.instructions.iter() {
-                match i {
-                    Instr::Operation(o, d, l, r) => {
-                        panic!("not implemented");
-                    }
+        self.blocks.iter().for_each(|b| {
+            b.instructions.iter().for_each(|i| match i {
+                Instr::Operation(o, d, l, r) => {
+                    gen.add32([(*o).into(), 0, 0, 0]);
+                    gen.add64(usize::to_ne_bytes(*d));
+                    gen.add64(usize::to_ne_bytes(*l));
+                    gen.add64(usize::to_ne_bytes(*r));
                 }
-            }
-        }
+            })
+        })
     }
     pub fn reg_inc(&mut self) -> usize {
         let val = self.reg_id;
