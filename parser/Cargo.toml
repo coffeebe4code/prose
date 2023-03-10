@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 logos = "0.12.0"
 ast = { path = "../ast" }
-lexeme = { path = "../lexeme" }
 lexer = { path = "../lexer" }
 token = { path = "../token" }
+perror = { path = "../perror" }

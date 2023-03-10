@@ -1,32 +1,38 @@
-use lexeme::Lexeme;
-use token::Token;
+use lexer::Lexeme;
 
 #[derive(Debug, PartialEq)]
-pub enum Expr<'source> {
-    Body(Vec<Expr<'source>>),
-    // mutability, identifier, signature, assignment, expr, semicolon
-    Assignment(
-        Token,
-        Box<Expr<'source>>,
-        Option<Box<Expr<'source>>>,
-        Token,
-        Box<Expr<'source>>,
-        Option<Token>,
-    ),
-    // identifier, asop, expr, semicolon
-    Reassignment(Box<Expr<'source>>, Token, Box<Expr<'source>>, Option<Token>),
-    // left expr, op, right expr
-    BinOp(Box<Expr<'source>>, Token, Box<Expr<'source>>),
-    UnaryOp(Box<Expr<'source>>, Token),
-    Identity(Lexeme<'source>),
-    RetFn(Option<Box<Expr<'source>>>, bool),
-    Number(Lexeme<'source>),
-    Single(Token),
+pub enum Expr<'s> {
+    //    Body(Vec<Expr<'s>>),
+    //    // mutability, identifier, signature, assignment, expr, semicolon
+    //    Assignment(
+    //        Token,
+    //        Box<Expr<'s>>,
+    //        Option<Box<Expr<'s>>>,
+    //        Token,
+    //        Box<Expr<'s>>,
+    //        Option<Token>,
+    //    ),
+    //    // identifier, asop, expr, semicolon
+    //    Reassignment(Box<Expr<'s>>, Token, Box<Expr<'s>>, Option<Token>),
+    //    // left expr, op, right expr
+    BinOp(Box<Expr<'s>>, Lexeme<'s>, Box<Expr<'s>>),
+    UnaryOp(Box<Expr<'s>>, Lexeme<'s>),
+    //    Identity(Lexeme<'s>),
+    //    RetFn(Option<Box<Expr<'s>>>, bool),
+    Number(Lexeme<'s>),
+    //    Single(Token),
 }
 
 #[macro_export]
-macro_rules! some_expr {
+macro_rules! make_expr {
     ($val:ident, $($inner:tt)*) => {
-        Some(Box::new(Expr::$val($($inner)*)));
+        Box::new(Expr::$val($($inner)*));
+    };
+}
+
+#[macro_export]
+macro_rules! bubble_expr {
+    ($val:ident, $($inner:tt)*) => {
+        Some(Ok(Box::new(Expr::$val($($inner)*))));
     };
 }

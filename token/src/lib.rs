@@ -92,32 +92,16 @@ pub enum Token {
     Async,
     #[token("await")]
     Await,
-    #[token("box")]
-    WBox,
     #[token("trait")]
     Trait,
-    #[token("ptr")]
-    Ptr,
     #[token("match")]
     Match,
-    #[token("addr")]
-    Addr,
-    #[token("vol")]
-    Vol,
-    #[token("list")]
-    List,
-    #[token("arr")]
-    Arr,
     #[token("true")]
     True,
     #[token("false")]
     False,
     #[token("void")]
     Void,
-    #[token("interface")]
-    Interface,
-    #[token("generic")]
-    Generic,
     #[token("never")]
     Never,
     #[token("bool")]
@@ -127,8 +111,6 @@ pub enum Token {
     #[token("contract")]
     Contract,
     #[token("fn")]
-    Fun,
-    #[token("func")]
     Func,
 
     #[token("->")]
@@ -235,16 +217,21 @@ pub enum Token {
     #[token("&=")]
     AndAs,
 
-    #[regex("[a-zA-Z]+")]
-    Symbol,
-    #[regex("[1-9][0-9]*|0")]
+    #[regex(r#"'([^'\\]|\\t|\\u|\\n|\\')*'"#)]
+    #[regex(r#""([^"\\]|\\t|\\u|\\n|\\")*""#)]
+    Chars,
+
+    #[regex("[1-9][0-9]*\\.[0-9]+|0\\.[0-9]+|0|[1-9][0-9]*")]
     Num,
+    #[regex("[a-zA-Z]+([a-zA-z-_])*")]
+    Symbol,
     #[regex("[1-9][0-9]*.[0-9]+|0.[0-9]+")]
     Decimal,
 
     #[token("\n")]
     NewLine,
-    #[regex(r"[ \t\r\f]+", logos::skip)]
+    #[regex(r"//.*", logos::skip)]
+    #[regex(r"[ \t\r\f\n]+", logos::skip)]
     #[error]
     Error,
 }

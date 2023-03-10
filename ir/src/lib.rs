@@ -26,7 +26,7 @@ impl<'block, 'source> IrSource<'block, 'source> {
             Expr::BinOp(leftexpr, token, rightexpr) => {
                 let left = self.recurse(leftexpr);
                 let right = self.recurse(rightexpr);
-                match *token {
+                match token.token {
                     Token::Sub => {
                         // how to get the type f64, u64 etc.
                         let instr = Instr::new_op(Op::F64Sub, self.reg_id, left, right);

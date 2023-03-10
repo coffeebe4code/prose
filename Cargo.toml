@@ -5,7 +5,6 @@ members = [
   "lexer",
   "parser",
   "ast",
-  "lexeme",
   "ir",
   "vm",
   "gen",
@@ -13,5 +12,6 @@ members = [
   "opcode",
   "hash",
   "ssa",
+  "perror",
   "instr"
 ]
