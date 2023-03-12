@@ -5,9 +5,7 @@ low_bin => high_bin ( ( "-" | "+") high_bin )*
 high_bin => unary ( ( "/" | "\*" | "%" ) unary )*
 unary => ( "!" | "-" ) unary | TERMINAL
 
-TERMINAL => "true" | "false" | "null" | NUMBER | IDENTIFIER
 NUMBER => DIGIT+ ( "." DIGIT+ )?
-IDENTIFIER => < any ALPHA except "_" > ( ALPHA | DIGIT )*
 
 
 //top => "pub"? ( func_decl | body | expression | type_decl )

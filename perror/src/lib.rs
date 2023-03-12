@@ -2,7 +2,7 @@ use std::fmt;
 
 pub type Result<T> = std::result::Result<T, ParseError>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ParseError {
     title: &'static str,
 }

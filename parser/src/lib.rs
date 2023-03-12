@@ -147,55 +147,44 @@ impl<'a> Parser<'a> {
     //     }
     //     return Some(left);
     // }
-    //pub fn low_bin(&mut self) -> Option<Result<Box<Expr<'a>>>> {
-    //    let left = self.high_bin()?;
-    //    let bin = self.lexer.collect_of_if(&[Token::Plus, Token::Sub]);
-    //    if let Some(x) = bin {
-    //        // TODO:: Error if expr is none
-    //        let right = self.high_bin()?;
-    //        return some_expr!(BinOp, left, x, right);
-    //    }
-    //    return Some(Ok(left));
-    //}
-    //pub fn high_bin(&mut self) -> Option<Result<Box<Expr<'a>>>> {
-    //    let left = self.unary()?.bubble_error(|x| { });
-    //    if let Ok(a) = left {
-    //        let bin = self
-    //            .lexer
-    //            .collect_of_if(&[Token::Div, Token::Mul, Token::Mod]);
-    //        if let Some(x) = bin {
-    //            let right = self.unary();
-    //            match right {
-    //                None => {
-    //                    return Some(Err(ParseError::new("expected unary or num", 0..2)));
-    //                }
-    //                Some(val) {
-    //                    match val {
-    //                        Err(t) => return Some(Err(t));
-
-    //                    }
-
-    //                }
-    //            }
-    //            if let None = right {
-    //                return Some(Err(ParseError::new("expected unary or num", 0..2)));
-    //            }
-    //            if let None = right {
-    //                return Some(Err(ParseError::new("expected unary or num", 0..2)));
-    //            }
-    //            return some_expr!(BinOp, a, x, right);
-    //        }
-    //    }
-    //    return Some(left);
-    //}
+    pub fn low_bin(&mut self) -> BubbleExpr<'a> {
+        self.high_bin().bubble_error(|left| {
+            let bin = self.lexer.collect_of_if(&[Token::Plus, Token::Sub]);
+            if let Some(x) = bin {
+                return self
+                    .high_bin()
+                    .expect_some_val("low_bin")
+                    .bubble_error(|right| {
+                        return bubble_expr!(BinOp, left, x, right);
+                    });
+            }
+            return Some(Ok(left));
+        })
+    }
+    pub fn high_bin(&mut self) -> BubbleExpr<'a> {
+        self.unary().bubble_error(|left| {
+            let bin = self
+                .lexer
+                .collect_of_if(&[Token::Div, Token::Mul, Token::Mod]);
+            if let Some(x) = bin {
+                return self
+                    .unary()
+                    .expect_some_val("high_bin")
+                    .bubble_error(|right| {
+                        return bubble_expr!(BinOp, left, x, right);
+                    });
+            }
+            return Some(Ok(left));
+        })
+    }
     pub fn num(&mut self) -> BubbleExpr<'a> {
         let lexeme = self.lexer.collect_if(Token::Num)?;
         return bubble_expr!(Number, lexeme);
     }
-    pub fn unary(&mut self) -> Option<Result<Box<Expr<'a>>>> {
+    pub fn unary(&mut self) -> BubbleExpr<'a> {
         let lexeme = self.lexer.collect_of_if(&[Token::Not, Token::Sub]);
         if let Some(x) = lexeme {
-            let expr = self.unary().expect_some_val("Error");
+            let expr = self.unary().expect_some_val("unary");
             return expr.bubble_error(|result| bubble_expr!(UnaryOp, result, x));
         }
         self.num()
@@ -211,7 +200,7 @@ trait BubbleError<'a> {
 }
 
 impl<'a> ExpectSomeVal<'a> for BubbleExpr<'a> {
-    fn expect_some_val(self, title: &'static str) -> Option<Result<Box<Expr<'a>>>> {
+    fn expect_some_val(self, title: &'static str) -> BubbleExpr<'a> {
         if self.is_none() {
             return Some(Err(ParseError::new(title)));
         }
@@ -261,5 +250,114 @@ mod tests {
             }
         );
         assert_eq!(result.unwrap().unwrap(), first);
+    }
+    #[test]
+    fn it_should_parse_unary_num() {
+        let lexer = ProseLexer::new("5");
+        let mut parser = Parser::new(lexer);
+        let result = parser.unary();
+        let first = make_expr!(
+            Number,
+            Lexeme {
+                slice: "5",
+                token: Token::Num,
+                span: 0..1
+            }
+        );
+        assert_eq!(result.unwrap().unwrap(), first);
+    }
+    #[test]
+    fn it_should_error_unary() {
+        let lexer = ProseLexer::new("-");
+        let mut parser = Parser::new(lexer);
+        let result = parser.unary();
+        let error = ParseError::new("unary");
+        assert_eq!(result.unwrap().expect_err("failed test"), error);
+    }
+    #[test]
+    fn it_should_error_high_bin() {
+        let lexer = ProseLexer::new("5 *");
+        let mut parser = Parser::new(lexer);
+        let result = parser.high_bin();
+        let error = ParseError::new("high_bin");
+        assert_eq!(result.unwrap().expect_err("failed test"), error);
+    }
+    #[test]
+    fn it_should_parse_high_bin() {
+        let lexer = ProseLexer::new("5 * 2");
+        let mut parser = Parser::new(lexer);
+        let result = parser.high_bin();
+        let expr = make_expr!(
+            BinOp,
+            make_expr!(
+                Number,
+                Lexeme {
+                    slice: "5",
+                    token: Token::Num,
+                    span: 0..1
+                }
+            ),
+            Lexeme {
+                slice: "*",
+                token: Token::Mul,
+                span: 2..3
+            },
+            make_expr!(
+                Number,
+                Lexeme {
+                    slice: "2",
+                    token: Token::Num,
+                    span: 4..5
+                }
+            )
+        );
+        assert_eq!(result.unwrap().unwrap(), expr);
+    }
+    #[test]
+    fn it_should_parse_low_bin() {
+        let lexer = ProseLexer::new("5 + 3 * 2");
+        let mut parser = Parser::new(lexer);
+        let result = parser.low_bin();
+        let expr = make_expr!(
+            BinOp,
+            make_expr!(
+                BinOp,
+                make_expr!(
+                    Number,
+                    Lexeme {
+                        slice: "5",
+                        token: Token::Num,
+                        span: 0..1
+                    }
+                ),
+                Lexeme {
+                    slice: "+",
+                    token: Token::Plus,
+                    span: 2..3
+                },
+                make_expr!(
+                    Number,
+                    Lexeme {
+                        slice: "3",
+                        token: Token::Num,
+                        span: 4..5
+                    }
+                )
+            ),
+            Lexeme {
+                slice: "*",
+                token: Token::Mul,
+                span: 5..6
+            },
+            make_expr!(
+                Number,
+                Lexeme {
+                    slice: "2",
+                    token: Token::Num,
+                    span: 7..8
+                }
+            )
+        );
+        assert_eq!(result.unwrap().unwrap(), expr);
     }
 }

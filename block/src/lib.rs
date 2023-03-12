@@ -1,6 +1,7 @@
 use instr::Instr;
 use ssa::*;
 
+#[derive(PartialEq)]
 pub enum BlockKind {
     // nested block no returns, possible other function calls
     PlainBlock,
@@ -20,16 +21,16 @@ pub enum BlockKind {
     LeafBlock,
 }
 
-pub struct Block<'block, 'source> {
+pub struct Block<'block, 'g> {
     pub kind: BlockKind,
     pub id: usize,
     pub instructions: Vec<Instr>,
-    vars: Vec<Var<'source>>,
-    preds: Vec<&'block Block<'block, 'source>>,
-    succs: Vec<&'block Block<'block, 'source>>,
+    vars: Vec<Var<'g>>,
+    preds: Vec<&'block Block<'block, 'g>>,
+    succs: Vec<&'block Block<'block, 'g>>,
 }
 
-impl<'block, 'source> Block<'block, 'source> {
+impl<'block, 'g> Block<'block, 'g> {
     pub fn new(id: usize) -> Self {
         Block {
             kind: BlockKind::PlainBlock,
@@ -43,10 +44,16 @@ impl<'block, 'source> Block<'block, 'source> {
     pub fn insert_instr(&mut self, instr: Instr) -> () {
         self.instructions.push(instr);
     }
-    pub fn insert_pred(&mut self, pred: &'block Block<'block, 'source>) -> () {
+    pub fn insert_pred(&mut self, pred: &'block Block<'block, 'g>) -> () {
         self.preds.push(pred);
+        if pred.kind == BlockKind::PlainBlock
+            || pred.kind == BlockKind::MatchBlock
+            || pred.kind == BlockKind::IfBlock
+        {
+            self.vars.extend(pred.vars.clone());
+        }
     }
-    pub fn insert_succ(&mut self, succ: &'block Block<'block, 'source>) -> () {
+    pub fn insert_succ(&mut self, succ: &'block Block<'block, 'g>) -> () {
         self.succs.push(succ);
     }
     pub fn search_symbol(&self, hash: usize, comp: &'block str) -> Option<usize> {
@@ -56,6 +63,7 @@ impl<'block, 'source> Block<'block, 'source> {
                 return Some(x);
             }
         }
+        // TODO:: search the global symbol table
         return None;
     }
 }

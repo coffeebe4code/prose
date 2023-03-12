@@ -16,6 +16,10 @@ pub enum Token {
     Release,
     #[token("debug")]
     Debug,
+    #[token("move")]
+    Move,
+    #[token("copy")]
+    ACopy,
     #[token("mut")]
     Mut,
     #[token("let")]

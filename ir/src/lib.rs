@@ -23,13 +23,22 @@ impl<'block, 'source> IrSource<'block, 'source> {
     }
     pub fn recurse(&mut self, recurse: &Expr) -> usize {
         match recurse {
-            Expr::BinOp(leftexpr, token, rightexpr) => {
+            Expr::BinOp(leftexpr, lexeme, rightexpr) => {
                 let left = self.recurse(leftexpr);
                 let right = self.recurse(rightexpr);
-                match token.token {
+                match lexeme.token {
                     Token::Sub => {
-                        // how to get the type f64, u64 etc.
                         let instr = Instr::new_op(Op::F64Sub, self.reg_id, left, right);
+                        self.blocks[self.block_id].insert_instr(instr);
+                        return self.reg_inc();
+                    }
+                    Token::Plus => {
+                        let instr = Instr::new_op(Op::F64Add, self.reg_id, left, right);
+                        self.blocks[self.block_id].insert_instr(instr);
+                        return self.reg_inc();
+                    }
+                    Token::Mul => {
+                        let instr = Instr::new_op(Op::F64Mul, self.reg_id, left, right);
                         self.blocks[self.block_id].insert_instr(instr);
                         return self.reg_inc();
                     }
@@ -37,6 +46,12 @@ impl<'block, 'source> IrSource<'block, 'source> {
                         panic!("not implemented, token in recurse");
                     }
                 }
+            }
+            Expr::Number(lexeme) => {
+                let instr =
+                    Instr::new_op(Op::LoopOp, self.reg_id, lexeme.slice.parse().unwrap(), 0);
+                self.blocks[self.block_id].insert_instr(instr);
+                return self.reg_inc();
             }
             _ => {
                 panic!("not implemented, expr in recurse");
