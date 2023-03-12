@@ -13,5 +13,6 @@ members = [
   "hash",
   "ssa",
   "perror",
-  "instr"
+  "instr",
+  "e2e",
 ]

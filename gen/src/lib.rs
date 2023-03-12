@@ -10,23 +10,18 @@ impl GenSource {
             binary: vec![],
         }
     }
-    pub fn add32(&mut self, val: [u8; 4]) -> &mut Self {
-        self.binary.extend_from_slice(&val);
-        self.pos += 4;
-        return self;
-    }
     pub fn add64(&mut self, val: [u8; 8]) -> &mut Self {
         self.binary.extend_from_slice(&val);
         self.pos += 8;
         return self;
     }
-    pub fn read32<'a>(&'a mut self) -> &'a [u8] {
-        let ret = &self.binary[self.pos..self.pos + 4];
-        self.pos += 4;
+    pub fn read64<'a>(&'a mut self) -> usize {
+        let ret = usize::from_be_bytes(self.binary[self.pos..self.pos + 8].try_into().unwrap());
+        self.pos += 8;
         return ret;
     }
-    pub fn read64<'a>(&'a mut self) -> &'a [u8] {
-        let ret = &self.binary[self.pos..self.pos + 8];
+    pub fn read64_parts<'a>(&'a mut self) -> &'a [u8; 8] {
+        let ret: &[u8; 8] = self.binary[self.pos..self.pos + 8].try_into().unwrap();
         self.pos += 8;
         return ret;
     }
@@ -53,18 +48,16 @@ mod tests {
     fn it_should_insert_and_read() {
         let mut gen = GenSource::new();
         gen.add64([1u8; 8]);
-        let val = gen.reset().read64();
-        assert_eq!(val, &[1; 8]);
+        let val = gen.reset().read64_parts();
+        assert_eq!(val, &[1u8; 8]);
     }
     #[test]
     fn it_should_insert_with_pos() {
         let mut gen = GenSource::new();
         gen.add64([1u8; 8]);
-        gen.add32([0u8; 4]);
         gen.reset();
-        assert_eq!(gen.read64(), [1; 8]);
-        assert_eq!(gen.get_len(), 12);
-        assert_eq!(gen.get_remaining(), 4);
-        assert_eq!(gen.read32(), [0; 4]);
+        assert_eq!(gen.read64_parts(), &[1u8; 8]);
+        assert_eq!(gen.get_len(), 8);
+        assert_eq!(gen.get_remaining(), 0);
     }
 }

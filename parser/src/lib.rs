@@ -3,8 +3,8 @@ use lexer::ProseLexer;
 use perror::*;
 use token::Token;
 
-type ResultExpr<'a> = Result<Box<Expr<'a>>>;
-type BubbleExpr<'a> = Option<ResultExpr<'a>>;
+pub type ResultExpr<'a> = Result<Box<Expr<'a>>>;
+pub type BubbleExpr<'a> = Option<ResultExpr<'a>>;
 
 pub struct Parser<'a> {
     lexer: ProseLexer<'a>,
@@ -321,20 +321,20 @@ mod tests {
         let expr = make_expr!(
             BinOp,
             make_expr!(
-                BinOp,
-                make_expr!(
-                    Number,
-                    Lexeme {
-                        slice: "5",
-                        token: Token::Num,
-                        span: 0..1
-                    }
-                ),
+                Number,
                 Lexeme {
-                    slice: "+",
-                    token: Token::Plus,
-                    span: 2..3
-                },
+                    slice: "5",
+                    token: Token::Num,
+                    span: 0..1
+                }
+            ),
+            Lexeme {
+                slice: "+",
+                token: Token::Plus,
+                span: 2..3
+            },
+            make_expr!(
+                BinOp,
                 make_expr!(
                     Number,
                     Lexeme {
@@ -342,20 +342,20 @@ mod tests {
                         token: Token::Num,
                         span: 4..5
                     }
-                )
-            ),
-            Lexeme {
-                slice: "*",
-                token: Token::Mul,
-                span: 5..6
-            },
-            make_expr!(
-                Number,
+                ),
                 Lexeme {
-                    slice: "2",
-                    token: Token::Num,
-                    span: 7..8
-                }
+                    slice: "*",
+                    token: Token::Mul,
+                    span: 6..7
+                },
+                make_expr!(
+                    Number,
+                    Lexeme {
+                        slice: "2",
+                        token: Token::Num,
+                        span: 8..9
+                    }
+                )
             )
         );
         assert_eq!(result.unwrap().unwrap(), expr);

@@ -114,7 +114,7 @@ pub enum Op {
 }
 
 impl Op {
-    pub fn from32(bytes: u8) -> Op {
+    pub fn from(bytes: u8) -> Op {
         return Op::try_from(bytes).unwrap();
     }
 }
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        assert_eq!(Op::from32(99), Op::OpError);
-        assert_eq!(Op::from32(0), Op::NoOp);
+        assert_eq!(Op::from(99), Op::OpError);
+        assert_eq!(Op::from(0), Op::NoOp);
     }
 }

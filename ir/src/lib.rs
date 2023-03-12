@@ -28,19 +28,13 @@ impl<'block, 'source> IrSource<'block, 'source> {
                 let right = self.recurse(rightexpr);
                 match lexeme.token {
                     Token::Sub => {
-                        let instr = Instr::new_op(Op::F64Sub, self.reg_id, left, right);
-                        self.blocks[self.block_id].insert_instr(instr);
-                        return self.reg_inc();
+                        return std_instr!(self, Op::F64Sub, self.reg_id, left, right);
                     }
                     Token::Plus => {
-                        let instr = Instr::new_op(Op::F64Add, self.reg_id, left, right);
-                        self.blocks[self.block_id].insert_instr(instr);
-                        return self.reg_inc();
+                        return std_instr!(self, Op::F64Add, self.reg_id, left, right);
                     }
                     Token::Mul => {
-                        let instr = Instr::new_op(Op::F64Mul, self.reg_id, left, right);
-                        self.blocks[self.block_id].insert_instr(instr);
-                        return self.reg_inc();
+                        return std_instr!(self, Op::F64Mul, self.reg_id, left, right);
                     }
                     _ => {
                         panic!("not implemented, token in recurse");
@@ -48,25 +42,32 @@ impl<'block, 'source> IrSource<'block, 'source> {
                 }
             }
             Expr::Number(lexeme) => {
-                let instr =
-                    Instr::new_op(Op::LoopOp, self.reg_id, lexeme.slice.parse().unwrap(), 0);
-                self.blocks[self.block_id].insert_instr(instr);
-                return self.reg_inc();
+                return std_instr!(
+                    self,
+                    Op::Load,
+                    self.reg_id,
+                    lexeme.slice.parse().unwrap(),
+                    0
+                );
             }
             _ => {
                 panic!("not implemented, expr in recurse");
             }
         }
     }
-    pub fn begin(&mut self, top: &Expr) -> &mut Self {
+    pub fn begin_repl(&mut self, top: &Expr) {
+        self.blocks.push(Block::new(self.block_id));
+        self.blocks[self.block_id].kind = BlockKind::MainBlock;
         self.main_exit = self.recurse(top);
-        return self;
+    }
+    pub fn begin(&mut self, top: &Expr) {
+        self.main_exit = self.recurse(top);
     }
     pub fn flush(self, gen: &mut GenSource) -> () {
         self.blocks.iter().for_each(|b| {
             b.instructions.iter().for_each(|i| match i {
                 Instr::Operation(o, d, l, r) => {
-                    gen.add32([(*o).into(), 0, 0, 0]);
+                    gen.add64([(*o).into(), 0, 0, 0, 0, 0, 0, 0]);
                     gen.add64(usize::to_ne_bytes(*d));
                     gen.add64(usize::to_ne_bytes(*l));
                     gen.add64(usize::to_ne_bytes(*r));
@@ -79,4 +80,13 @@ impl<'block, 'source> IrSource<'block, 'source> {
         self.reg_id += 1;
         return val;
     }
+}
+
+#[macro_export]
+macro_rules! std_instr {
+    ($self:ident, $val:expr, $dst:expr, $srcl:expr, $srcr:expr) => {{
+        let instr = Instr::new_op($val, $dst, $srcl, $srcr);
+        $self.blocks[$self.block_id].insert_instr(instr);
+        $self.reg_inc()
+    }};
 }

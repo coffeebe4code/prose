@@ -14,16 +14,29 @@ impl Vm {
         }
     }
     pub fn run(&mut self) -> Result<usize, usize> {
+        self.gen.reset();
         let mut result = 0;
         loop {
             if self.gen.get_remaining() == 0 {
                 break;
             }
-            let instr = self.gen.read32();
-            let op = Op::from32(instr[0]);
-            let dst = instr[1];
+            let instr = self.gen.read64_parts();
+            let op = Op::from(instr[0]);
+            let dst = self.gen.read64();
+            eprintln!("dst {}", dst);
             match op {
-                Op::NoOp => {}
+                Op::F64Sub => {}
+                Op::F64Const => {
+                    let srcl = self.gen.read64();
+                    let _srcr = self.gen.read64();
+                    self.regs[dst as usize] = srcl;
+                }
+                Op::F64Add => {
+                    let srcl = self.gen.read64();
+                    let srcr = self.gen.read64();
+                    binary_op!(+, self, dst, srcl, srcr);
+                }
+                Op::F64Mul => {}
                 Op::RetVal => {
                     result = self.regs[dst as usize];
                 }
@@ -37,6 +50,14 @@ impl Vm {
         return Ok(result);
     }
 }
+
+#[macro_export]
+macro_rules! binary_op {
+    ($op:tt, $self:expr, $dst:expr, $srcl:expr, $srcr:expr) => {
+        $self.regs[$dst] = ($self.regs[$srcl] as f64 $op $self.regs[$srcr] as f64) as usize;
+    };
+}
+
 #[cfg(test)]
 mod tests {
 
