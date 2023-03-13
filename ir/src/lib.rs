@@ -44,7 +44,7 @@ impl<'block, 'source> IrSource<'block, 'source> {
             Expr::Number(lexeme) => {
                 return std_instr!(
                     self,
-                    Op::Load,
+                    Op::F64Const,
                     self.reg_id,
                     lexeme.slice.parse().unwrap(),
                     0

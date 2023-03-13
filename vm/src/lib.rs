@@ -23,20 +23,21 @@ impl Vm {
             let instr = self.gen.read64_parts();
             let op = Op::from(instr[0]);
             let dst = self.gen.read64();
-            eprintln!("dst {}", dst);
+            let _srcl = self.gen.read64();
+            let _srcr = self.gen.read64();
             match op {
                 Op::F64Sub => {}
                 Op::F64Const => {
-                    let srcl = self.gen.read64();
-                    let _srcr = self.gen.read64();
-                    self.regs[dst as usize] = srcl;
+                    self.regs[dst as usize] = _srcl;
                 }
                 Op::F64Add => {
-                    let srcl = self.gen.read64();
-                    let srcr = self.gen.read64();
-                    binary_op!(+, self, dst, srcl, srcr);
+                    binary_op!(+, self, dst, _srcl, _srcr);
+                    result = self.regs[dst as usize];
                 }
-                Op::F64Mul => {}
+                Op::F64Mul => {
+                    binary_op!(*, self, dst, _srcl, _srcr);
+                    result = self.regs[dst as usize];
+                }
                 Op::RetVal => {
                     result = self.regs[dst as usize];
                 }

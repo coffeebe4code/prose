@@ -16,7 +16,7 @@ impl GenSource {
         return self;
     }
     pub fn read64<'a>(&'a mut self) -> usize {
-        let ret = usize::from_be_bytes(self.binary[self.pos..self.pos + 8].try_into().unwrap());
+        let ret = usize::from_ne_bytes(self.binary[self.pos..self.pos + 8].try_into().unwrap());
         self.pos += 8;
         return ret;
     }
