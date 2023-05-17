@@ -9,7 +9,7 @@ fn main() {
     let mut parse = Parser::new(lex);
     let ast_parsed = parse.low_bin();
     let mut ir = IrSource::new();
-    ir.begin_repl(&ast_parsed.unwrap().unwrap());
+    ir.begin_repl(ast_parsed.unwrap().unwrap());
     let mut gen = GenSource::new();
     ir.flush(&mut gen);
     let mut vm = Vm::new(gen);

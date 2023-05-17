@@ -32,11 +32,9 @@ impl Vm {
                 }
                 Op::F64Add => {
                     binary_op!(+, self, dst, _srcl, _srcr);
-                    result = self.regs[dst as usize];
                 }
                 Op::F64Mul => {
                     binary_op!(*, self, dst, _srcl, _srcr);
-                    result = self.regs[dst as usize];
                 }
                 Op::RetVal => {
                     result = self.regs[dst as usize];

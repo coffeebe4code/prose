@@ -55,10 +55,11 @@ impl<'block, 'source> IrSource<'block, 'source> {
             }
         }
     }
-    pub fn begin_repl(&mut self, top: &Expr) {
+    pub fn begin_repl(&mut self, top: Box<Expr>) {
         self.blocks.push(Block::new(self.block_id));
         self.blocks[self.block_id].kind = BlockKind::MainBlock;
-        self.main_exit = self.recurse(top);
+        let retval = make_expr!(RetFn, top);
+        self.main_exit = self.recurse(&retval);
     }
     pub fn begin(&mut self, top: &Expr) {
         self.main_exit = self.recurse(top);

@@ -177,10 +177,6 @@ impl<'a> Parser<'a> {
             return Some(Ok(left));
         })
     }
-    pub fn num(&mut self) -> BubbleExpr<'a> {
-        let lexeme = self.lexer.collect_if(Token::Num)?;
-        return bubble_expr!(Number, lexeme);
-    }
     pub fn unary(&mut self) -> BubbleExpr<'a> {
         let lexeme = self.lexer.collect_of_if(&[Token::Not, Token::Sub]);
         if let Some(x) = lexeme {
@@ -188,6 +184,10 @@ impl<'a> Parser<'a> {
             return expr.bubble_error(|result| bubble_expr!(UnaryOp, result, x));
         }
         self.num()
+    }
+    pub fn num(&mut self) -> BubbleExpr<'a> {
+        let lexeme = self.lexer.collect_if(Token::Num)?;
+        return bubble_expr!(Number, lexeme);
     }
 }
 

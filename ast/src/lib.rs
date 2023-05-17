@@ -18,7 +18,7 @@ pub enum Expr<'s> {
     BinOp(Box<Expr<'s>>, Lexeme<'s>, Box<Expr<'s>>),
     UnaryOp(Box<Expr<'s>>, Lexeme<'s>),
     //    Identity(Lexeme<'s>),
-    //    RetFn(Option<Box<Expr<'s>>>, bool),
+    RetFn(Box<Expr<'s>>),
     Number(Lexeme<'s>),
     //    Single(Token),
 }
