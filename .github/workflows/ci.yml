@@ -17,6 +17,8 @@ jobs:
       - run: |
           cargo build --release
           cargo test
+          ./target/release/e2e
+
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -27,6 +29,8 @@ jobs:
       - run: |
           cargo build --release
           cargo test
+          ./target/release/e2e
+
   build-macos:
     runs-on: macOS-latest
     steps:
@@ -37,3 +41,4 @@ jobs:
       - run: |
           cargo build --release
           cargo test
+          ./target/release/e2e

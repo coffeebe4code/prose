@@ -38,7 +38,7 @@ impl<'s> ProseLexer<'s> {
             match self.lexer.next() {
                 Some(val) => {
                     self.current = Some(Lexeme {
-                        token: val,
+                        token: val.unwrap(),
                         span: self.lexer.span(),
                         slice: self.lexer.slice(),
                     })
