@@ -7,5 +7,4 @@ fn main() {
     let mut parse = Parser::new(lex);
     let ast_parsed = parse.low_bin();
     let mut ir = IrSource::new();
-    panic!();
 }
