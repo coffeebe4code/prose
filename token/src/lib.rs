@@ -2,26 +2,22 @@ use logos::Logos;
 
 #[derive(Logos, Copy, Clone, Debug, PartialEq)]
 pub enum Token {
-    #[token("import")]
-    Import,
-    #[token("define")]
-    Define,
+    #[token("use")]
+    Use,
+    #[token("export")]
+    Export,
+    #[token("error")]
+    Error,
+    #[token("any")]
+    Any,
+    #[token("def")]
+    Def,
     #[token("macro")]
     Macro,
     #[token("test")]
     Test,
     #[token("bench")]
     Bench,
-    #[token("release")]
-    Release,
-    #[token("debug")]
-    Debug,
-    #[token("move")]
-    Move,
-    #[token("copy")]
-    ACopy,
-    #[token("mut")]
-    Mut,
     #[token("let")]
     Let,
     #[token("const")]
@@ -44,38 +40,32 @@ pub enum Token {
     U8,
     #[token("i8")]
     I8,
-    #[token("bit")]
+    #[token("u1")]
     Bit,
     #[token("f64")]
     F64,
-    #[token("f32")]
-    F32,
-    #[token("d32")]
-    D32,
     #[token("d64")]
     D64,
+    #[token("f32")]
+    F32,
+    #[token("f128")]
+    F128,
+    #[token("d128")]
+    D128,
     #[token("if")]
     If,
     #[token("else")]
     Else,
     #[token("type")]
     Type,
-    #[token("this")]
-    This,
     #[token("self")]
     WSelf,
     #[token("null")]
     Null,
-    #[token("undef")]
-    Undef,
     #[token("char")]
     Char,
     #[token("string")]
     WString,
-    #[token("inline")]
-    Inline,
-    #[token("static")]
-    Static,
     #[token("switch")]
     Switch,
     #[token("for")]
@@ -88,18 +78,18 @@ pub enum Token {
     Break,
     #[token("enum")]
     Enum,
+    #[token("union")]
+    Union,
     #[token("pub")]
     Pub,
-    #[token("return")]
+    #[token("ret")]
     Return,
-    #[token("async")]
-    Async,
     #[token("await")]
     Await,
+    #[token("frame")]
+    Frame,
     #[token("trait")]
     Trait,
-    #[token("match")]
-    Match,
     #[token("true")]
     True,
     #[token("false")]
@@ -110,8 +100,6 @@ pub enum Token {
     Never,
     #[token("bool")]
     Bool,
-    #[token("byte")]
-    Byte,
     #[token("contract")]
     Contract,
     #[token("fn")]
@@ -235,9 +223,8 @@ pub enum Token {
     #[token("\n")]
     NewLine,
     #[regex(r"//.*", logos::skip)]
-    #[regex(r"[ \t\r\f\n]+", logos::skip)]
-    #[error]
-    Error,
+    #[regex(r"[ \t\r\f]+", logos::skip)]
+    Skip,
 }
 
 impl Token {
@@ -256,20 +243,20 @@ mod tests {
     #[test]
     fn it_tokenizes() {
         let mut lexer = Token::lexer("let x = 5;");
-        assert_eq!(lexer.next(), Some(Token::Let));
-        assert_eq!(lexer.next(), Some(Token::Symbol));
-        assert_eq!(lexer.next(), Some(Token::As));
-        assert_eq!(lexer.next(), Some(Token::Num));
-        assert_eq!(lexer.next(), Some(Token::SColon));
+        assert_eq!(lexer.next(), Some(Ok(Token::Let)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Symbol)));
+        assert_eq!(lexer.next(), Some(Ok(Token::As)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Num)));
+        assert_eq!(lexer.next(), Some(Ok(Token::SColon)));
     }
     #[test]
     fn it_tokenizes_nums() {
         let mut lexer1 = Token::lexer("5");
         let mut lexer2 = Token::lexer("50");
         let mut lexer3 = Token::lexer("0");
-        assert_eq!(lexer1.next(), Some(Token::Num));
-        assert_eq!(lexer2.next(), Some(Token::Num));
-        assert_eq!(lexer3.next(), Some(Token::Num));
+        assert_eq!(lexer1.next(), Some(Ok(Token::Num)));
+        assert_eq!(lexer2.next(), Some(Ok(Token::Num)));
+        assert_eq!(lexer3.next(), Some(Ok(Token::Num)));
     }
     #[test]
     fn it_tokenizes_decimals() {
@@ -281,16 +268,16 @@ mod tests {
         let mut lexer6 = Token::lexer("1.");
         let mut lexer7 = Token::lexer("01.2");
         let mut lexer8 = Token::lexer("1.00");
-        assert_eq!(lexer1.next(), Some(Token::Decimal));
-        assert_eq!(lexer2.next(), Some(Token::Decimal));
-        assert_eq!(lexer3.next(), Some(Token::Decimal));
-        assert_eq!(lexer4.next(), Some(Token::Decimal));
-        assert_eq!(lexer5.next(), Some(Token::Dot));
-        assert_eq!(lexer5.next(), Some(Token::Num));
-        assert_eq!(lexer6.next(), Some(Token::Num));
-        assert_eq!(lexer6.next(), Some(Token::Dot));
-        assert_eq!(lexer7.next(), Some(Token::Num));
-        assert_eq!(lexer7.next(), Some(Token::Decimal));
-        assert_eq!(lexer8.next(), Some(Token::Decimal));
+        assert_eq!(lexer1.next(), Some(Ok(Token::Decimal)));
+        assert_eq!(lexer2.next(), Some(Ok(Token::Decimal)));
+        assert_eq!(lexer3.next(), Some(Ok(Token::Decimal)));
+        assert_eq!(lexer4.next(), Some(Ok(Token::Decimal)));
+        assert_eq!(lexer5.next(), Some(Ok(Token::Dot)));
+        assert_eq!(lexer5.next(), Some(Ok(Token::Num)));
+        assert_eq!(lexer6.next(), Some(Ok(Token::Num)));
+        assert_eq!(lexer6.next(), Some(Ok(Token::Dot)));
+        assert_eq!(lexer7.next(), Some(Ok(Token::Num)));
+        assert_eq!(lexer7.next(), Some(Ok(Token::Decimal)));
+        assert_eq!(lexer8.next(), Some(Ok(Token::Decimal)));
     }
 }

@@ -1,12 +1,10 @@
 [workspace]
-doctest = false
 members = [
   "token",
   "lexer",
   "parser",
   "ast",
   "ir",
-  "vm",
   "gen",
   "block",
   "opcode",
