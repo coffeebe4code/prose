@@ -6,5 +6,6 @@ fn main() {
     let lex = ProseLexer::new("5 + 3 * 2");
     let mut parse = Parser::new(lex);
     let ast_parsed = parse.low_bin();
-    let mut ir = IrSource::new();
+    let mut ir = FIRSource::new(0);
+    ir.begin(&ast_parsed.unwrap().unwrap());
 }
