@@ -3,204 +3,129 @@ use lexer::ProseLexer;
 use perror::*;
 use token::Token;
 
-pub type ResultExpr<'a> = Result<Box<Expr<'a>>>;
-pub type BubbleExpr<'a> = Option<ResultExpr<'a>>;
+pub type ResultExpr = Result<Box<Expr>>;
+pub type BubbleExpr = Option<ResultExpr>;
+pub type OptExpr = Option<Box<Expr>>;
 
-pub struct Parser<'a> {
-    lexer: ProseLexer<'a>,
+pub struct Parser<'s> {
+    lexer: ProseLexer<'s>,
 }
 
-impl<'a> Parser<'a> {
-    pub fn new(lexer: ProseLexer<'a>) -> Self {
+impl<'s> Parser<'s> {
+    pub fn new(lexer: ProseLexer<'s>) -> Self {
         Parser { lexer }
     }
-    // pub fn ident(&mut self) -> Result<Box<Expr<'a>>, Error> {
-    //     let lexeme = self.lexer.collect_if(Token::Symbol);
-    //     return Ok(make_expr!(Identity, lexeme));
-    // }
-    // pub fn term(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let mut expr: Option<Box<Expr<'a>>>;
-    //     expr = self.parse_true();
-    //     if expr.is_none() {
-    //         expr = self.parse_false();
-    //     }
-    //     if expr.is_none() {
-    //         expr = self.parse_null();
-    //     }
-    //     if expr.is_none() {
-    //         expr = self.num();
-    //     }
-    //     if expr.is_none() {
-    //         expr = self.ident();
-    //     }
-    //     return expr;
-    // }
-    // pub fn parse_true(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let lexeme = self.lexer.collect_if(Token::True)?;
-    //     return some_expr!(Single, lexeme.token);
-    // }
-    // pub fn parse_false(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let lexeme = self.lexer.collect_if(Token::False)?;
-    //     return some_expr!(Single, lexeme.token);
-    // }
-    // pub fn parse_null(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let lexeme = self.lexer.collect_if(Token::Null)?;
-    //     return some_expr!(Single, lexeme.token);
-    // }
-    // pub fn val_type(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let lexeme = self.lexer.collect_if(Token::Null)?;
-    //     return some_expr!(Single, lexeme.token);
-    // }
-    // pub fn parse_return(&mut self) -> Option<Box<Expr<'a>>> {
-    //     //TODO::reevaluate if need optional no return and how that looks in ebnf.
-    //     self.lexer.collect_if(Token::Return)?;
-    //     let expr = self.or_log();
-    //     let semicolon = self.lexer.collect_if(Token::SColon);
-    //     return some_expr!(RetFn, expr, semicolon.is_some());
-    // }
-    // pub fn inner_assignment(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let mutability = self.lexer.collect_of_if(&[Token::Mut, Token::Const])?.token;
-    //     //TODO:: error here on out if none
-    //     let ident = self.ident()?;
-    //     let colon = self.lexer.collect_if(Token::Colon);
-    //     let mut sig = None;
-    //     if colon.is_some() {
-    //         sig = self.signature();
-    //     }
-    //     let assignment = self.lexer.collect_if(Token::As)?.token;
-    //     let expr = self.or_log()?;
-    //     let semicolon = self.lexer.collect_if(Token::SColon);
-    //     return some_expr!(
-    //         Assignment,
-    //         mutability,
-    //         ident,
-    //         sig,
-    //         assignment,
-    //         expr,
-    //         semicolon.maybe_token()
-    //     );
-    // }
-    // pub fn reassignment(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let ident = self.ident()?;
-    //     let asop = self
-    //         .lexer
-    //         .collect_of_if(&[
-    //             Token::As,
-    //             Token::DivAs,
-    //             Token::SubAs,
-    //             Token::AddAs,
-    //             Token::MulAs,
-    //             Token::AndAs,
-    //             Token::XorAs,
-    //             Token::OrAs,
-    //         ])?
-    //         .token;
-    //     let expr = self.or_log()?;
-    //     let semicolon = self.lexer.collect_if(Token::SColon);
-    //     return some_expr!(Reassignment, ident, asop, expr, semicolon.maybe_token());
-    // }
-    // pub fn signature(&mut self) -> Option<Box<Expr<'a>>> {
-    //     //TODO::Impl
-    //     return None;
-    // }
-    // pub fn or_log(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let left = self.and_log()?;
-    //     let bin = self.lexer.collect_of_if(&[Token::OrLog]);
-    //     if let Some(x) = bin {
-    //         // TODO:: Error if expr is none
-    //         let right = self.and_log()?;
-    //         return some_expr!(BinOp, left, x.token, right);
-    //     }
-    //     return Some(left);
-    // }
-    // pub fn and_log(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let left = self.equality()?;
-    //     let bin = self.lexer.collect_of_if(&[Token::AndLog]);
-    //     if let Some(x) = bin {
-    //         // TODO:: Error if expr is none
-    //         let right = self.equality()?;
-    //         return some_expr!(BinOp, left, x.token, right);
-    //     }
-    //     return Some(left);
-    // }
-    // pub fn equality(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let left = self.comp()?;
-    //     let bin = self
-    //         .lexer
-    //         .collect_of_if(&[Token::NotEquality, Token::Equality]);
-    //     if let Some(x) = bin {
-    //         // TODO:: Error if expr is none
-    //         let right = self.comp()?;
-    //         return some_expr!(BinOp, left, x.token, right);
-    //     }
-    //     return Some(left);
-    // }
-    // pub fn comp(&mut self) -> Option<Box<Expr<'a>>> {
-    //     let left = self.low_bin()?;
-    //     let bin = self
-    //         .lexer
-    //         .collect_of_if(&[Token::Gt, Token::GtEq, Token::Lt, Token::LtEq]);
-    //     if let Some(x) = bin {
-    //         // TODO:: Error if expr is none
-    //         let right = self.low_bin()?;
-    //         return some_expr!(BinOp, left, x.token, right);
-    //     }
-    //     return Some(left);
-    // }
-    pub fn low_bin(&mut self) -> BubbleExpr<'a> {
-        self.high_bin().bubble_error(|left| {
-            let bin = self.lexer.collect_of_if(&[Token::Plus, Token::Sub]);
-            if let Some(x) = bin {
-                return self
-                    .high_bin()
-                    .expect_some_val("low_bin")
-                    .bubble_error(|right| {
-                        return bubble_expr!(BinOp, left, x, right);
-                    });
+    pub fn or_cmp(&mut self) -> ResultExpr {
+        self.and_cmp().bubble_error(|mut left| {
+            while let Some(bin) = self.lexer.collect_if(Token::Or) {
+                left = self
+                    .and_cmp()
+                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
             }
-            return Some(Ok(left));
+            Ok(left)
         })
     }
-    pub fn high_bin(&mut self) -> BubbleExpr<'a> {
-        self.unary().bubble_error(|left| {
-            let bin = self
+    pub fn and_cmp(&mut self) -> ResultExpr {
+        self.equality().bubble_error(|mut left| {
+            while let Some(bin) = self.lexer.collect_if(Token::And) {
+                left = self
+                    .equality()
+                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+            }
+            Ok(left)
+        })
+    }
+    pub fn equality(&mut self) -> ResultExpr {
+        self.cmp().bubble_error(|mut left| {
+            while let Some(bin) = self
                 .lexer
-                .collect_of_if(&[Token::Div, Token::Mul, Token::Mod]);
-            if let Some(x) = bin {
-                return self
-                    .unary()
-                    .expect_some_val("high_bin")
-                    .bubble_error(|right| {
-                        return bubble_expr!(BinOp, left, x, right);
-                    });
+                .collect_of_if(&[Token::Equality, Token::NotEquality])
+            {
+                left = self
+                    .cmp()
+                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
             }
-            return Some(Ok(left));
+            Ok(left)
         })
     }
-    pub fn unary(&mut self) -> BubbleExpr<'a> {
+    pub fn cmp(&mut self) -> ResultExpr {
+        self.low_bin().bubble_error(|mut left| {
+            while let Some(bin) =
+                self.lexer
+                    .collect_of_if(&[Token::Gt, Token::GtEq, Token::Lt, Token::LtEq])
+            {
+                left = self
+                    .low_bin()
+                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+            }
+            Ok(left)
+        })
+    }
+    pub fn low_bin(&mut self) -> ResultExpr {
+        self.high_bin().bubble_error(|mut left| {
+            while let Some(bin) = self.lexer.collect_of_if(&[Token::Plus, Token::Sub]) {
+                left = self
+                    .high_bin()
+                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+            }
+            Ok(left)
+        })
+    }
+    pub fn high_bin(&mut self) -> ResultExpr {
+        self.unary().bubble_error(|mut left| {
+            while let Some(bin) = self
+                .lexer
+                .collect_of_if(&[Token::Div, Token::Mul, Token::Mod])
+            {
+                left = self
+                    .unary()
+                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+            }
+            return Ok(left);
+        })
+    }
+    pub fn unary(&mut self) -> ResultExpr {
         let lexeme = self.lexer.collect_of_if(&[Token::Not, Token::Sub]);
         if let Some(x) = lexeme {
-            let expr = self.unary().expect_some_val("unary");
-            return expr.bubble_error(|result| bubble_expr!(UnaryOp, result, x));
+            let expr = self.unary();
+            return expr.bubble_error(|result| bubble_expr!(UnOp, x, result));
         }
         self.num()
+            .or_else_do(|| self.ident())
+            .convert("number or identifier".to_string())
     }
-    pub fn num(&mut self) -> BubbleExpr<'a> {
+    pub fn num(&mut self) -> OptExpr {
         let lexeme = self.lexer.collect_if(Token::Num)?;
-        return bubble_expr!(Number, lexeme);
+        opt_expr!(Number, lexeme)
+    }
+    pub fn ident(&mut self) -> OptExpr {
+        let lexeme = self.lexer.collect_if(Token::Symbol)?;
+        opt_expr!(Symbol, lexeme)
     }
 }
 
-trait ExpectSomeVal<'a> {
-    fn expect_some_val(self, title: &'static str) -> BubbleExpr<'a>;
+trait ExpectSomeVal {
+    fn expect_some_val(self, title: String) -> BubbleExpr;
 }
 
-trait BubbleError<'a> {
-    fn bubble_error(self, func: impl FnOnce(Box<Expr<'a>>) -> BubbleExpr<'a>) -> BubbleExpr<'a>;
+trait BubbleError {
+    fn bubble_error(self, func: impl FnOnce(Box<Expr>) -> ResultExpr) -> ResultExpr;
 }
 
-impl<'a> ExpectSomeVal<'a> for BubbleExpr<'a> {
-    fn expect_some_val(self, title: &'static str) -> BubbleExpr<'a> {
+trait OrElseDo {
+    fn or_else_do(self, func: impl FnOnce() -> OptExpr) -> OptExpr;
+}
+
+trait Convert {
+    fn convert(self, title: String) -> ResultExpr;
+}
+
+trait ChainExpect {
+    fn chain_expect(self, title: String) -> ResultExpr;
+}
+
+impl ExpectSomeVal for BubbleExpr {
+    fn expect_some_val(self, title: String) -> BubbleExpr {
         if self.is_none() {
             return Some(Err(ParseError::new(title)));
         }
@@ -208,18 +133,29 @@ impl<'a> ExpectSomeVal<'a> for BubbleExpr<'a> {
     }
 }
 
-impl<'a> BubbleError<'a> for BubbleExpr<'a> {
-    fn bubble_error(self, func: impl FnOnce(Box<Expr<'a>>) -> BubbleExpr<'a>) -> BubbleExpr<'a> {
+impl BubbleError for ResultExpr {
+    fn bubble_error(self, func: impl FnOnce(Box<Expr>) -> ResultExpr) -> ResultExpr {
         match self {
-            None => return None,
-            Some(val) => match val {
-                Err(err) => {
-                    return Some(Err(err));
-                }
-                Ok(inner) => {
-                    return func(inner);
-                }
-            },
+            Err(err) => Err(err),
+            Ok(inner) => func(inner),
+        }
+    }
+}
+
+impl OrElseDo for OptExpr {
+    fn or_else_do(self, func: impl FnOnce() -> OptExpr) -> OptExpr {
+        match self {
+            None => return func(),
+            Some(val) => return Some(val),
+        }
+    }
+}
+
+impl Convert for OptExpr {
+    fn convert(self, title: String) -> ResultExpr {
+        match self {
+            None => Err(ParseError::new(title)),
+            Some(val) => Ok(val),
         }
     }
 }
@@ -233,131 +169,190 @@ mod tests {
         let lexer = ProseLexer::new("-5");
         let mut parser = Parser::new(lexer);
         let result = parser.unary();
-        let first = make_expr!(
-            UnaryOp,
-            make_expr!(
+        let first = UnOp::new(
+            Lexeme {
+                slice: String::from("-"),
+                token: Token::Sub,
+                span: 0..1,
+            },
+            expr!(
                 Number,
                 Lexeme {
-                    slice: "5",
+                    slice: String::from("5"),
                     token: Token::Num,
-                    span: 1..2
+                    span: 1..2,
                 }
             ),
-            Lexeme {
-                slice: "-",
-                token: Token::Sub,
-                span: 0..1
-            }
         );
-        assert_eq!(result.unwrap().unwrap(), first);
+        assert_eq!(result.unwrap(), Box::new(Expr::UnOp(first)));
     }
     #[test]
     fn it_should_parse_unary_num() {
         let lexer = ProseLexer::new("5");
         let mut parser = Parser::new(lexer);
         let result = parser.unary();
-        let first = make_expr!(
-            Number,
-            Lexeme {
-                slice: "5",
-                token: Token::Num,
-                span: 0..1
-            }
-        );
-        assert_eq!(result.unwrap().unwrap(), first);
+        let first = Number::new(Lexeme {
+            slice: String::from("5"),
+            token: Token::Num,
+            span: 0..1,
+        });
+        assert_eq!(result.unwrap(), Box::new(Expr::Number(first)));
     }
     #[test]
     fn it_should_error_unary() {
         let lexer = ProseLexer::new("-");
         let mut parser = Parser::new(lexer);
         let result = parser.unary();
-        let error = ParseError::new("unary");
-        assert_eq!(result.unwrap().expect_err("failed test"), error);
+        let error = ParseError::new("number or identifier".to_string());
+        assert_eq!(result.expect_err("failed test"), error);
     }
     #[test]
     fn it_should_error_high_bin() {
         let lexer = ProseLexer::new("5 *");
         let mut parser = Parser::new(lexer);
         let result = parser.high_bin();
-        let error = ParseError::new("high_bin");
-        assert_eq!(result.unwrap().expect_err("failed test"), error);
+        let error = ParseError::new("number or identifier".to_string());
+        assert_eq!(result.expect_err("failed test"), error);
     }
     #[test]
     fn it_should_parse_high_bin() {
         let lexer = ProseLexer::new("5 * 2");
         let mut parser = Parser::new(lexer);
         let result = parser.high_bin();
-        let expr = make_expr!(
-            BinOp,
-            make_expr!(
+        let expr = BinOp::new(
+            expr!(
                 Number,
                 Lexeme {
-                    slice: "5",
+                    slice: String::from("5"),
                     token: Token::Num,
-                    span: 0..1
+                    span: 0..1,
                 }
             ),
             Lexeme {
-                slice: "*",
+                slice: String::from("*"),
                 token: Token::Mul,
-                span: 2..3
+                span: 2..3,
             },
-            make_expr!(
+            expr!(
                 Number,
                 Lexeme {
-                    slice: "2",
+                    slice: String::from("2"),
                     token: Token::Num,
-                    span: 4..5
+                    span: 4..5,
                 }
-            )
+            ),
         );
-        assert_eq!(result.unwrap().unwrap(), expr);
+        assert_eq!(result.unwrap(), Box::new(Expr::BinOp(expr)));
     }
     #[test]
-    fn it_should_parse_low_bin() {
-        let lexer = ProseLexer::new("5 + 3 * 2");
+    fn it_should_parse_low_bin_mul() {
+        let lexer = ProseLexer::new("5 + 3 * 2 + 1");
         let mut parser = Parser::new(lexer);
         let result = parser.low_bin();
-        let expr = make_expr!(
+        let expr = expr!(
             BinOp,
-            make_expr!(
-                Number,
-                Lexeme {
-                    slice: "5",
-                    token: Token::Num,
-                    span: 0..1
-                }
-            ),
-            Lexeme {
-                slice: "+",
-                token: Token::Plus,
-                span: 2..3
-            },
-            make_expr!(
+            expr!(
                 BinOp,
-                make_expr!(
+                expr!(
                     Number,
                     Lexeme {
-                        slice: "3",
+                        slice: String::from("5"),
                         token: Token::Num,
-                        span: 4..5
+                        span: 0..1,
                     }
                 ),
                 Lexeme {
-                    slice: "*",
-                    token: Token::Mul,
-                    span: 6..7
+                    slice: String::from("+"),
+                    token: Token::Plus,
+                    span: 2..3,
                 },
-                make_expr!(
-                    Number,
+                expr!(
+                    BinOp,
+                    expr!(
+                        Number,
+                        Lexeme {
+                            slice: String::from("3"),
+                            token: Token::Num,
+                            span: 4..5
+                        }
+                    ),
                     Lexeme {
-                        slice: "2",
-                        token: Token::Num,
-                        span: 8..9
-                    }
-                )
+                        slice: String::from("*"),
+                        token: Token::Mul,
+                        span: 6..7
+                    },
+                    expr!(
+                        Number,
+                        Lexeme {
+                            slice: String::from("2"),
+                            token: Token::Num,
+                            span: 8..9
+                        }
+                    )
+                ),
+            ),
+            Lexeme {
+                slice: String::from("+"),
+                token: Token::Plus,
+                span: 10..11,
+            },
+            expr!(
+                Number,
+                Lexeme {
+                    slice: String::from("1"),
+                    token: Token::Num,
+                    span: 12..13,
+                }
             )
         );
-        assert_eq!(result.unwrap().unwrap(), expr);
+        assert_eq!(result.unwrap(), expr);
+    }
+
+    #[test]
+    fn it_should_parse_low_bin() {
+        let lexer = ProseLexer::new("5 + 3 + 2");
+        let mut parser = Parser::new(lexer);
+        let result = parser.low_bin();
+        let expr = expr!(
+            BinOp,
+            expr!(
+                BinOp,
+                expr!(
+                    Number,
+                    Lexeme {
+                        slice: String::from("5"),
+                        token: Token::Num,
+                        span: 0..1,
+                    }
+                ),
+                Lexeme {
+                    slice: String::from("+"),
+                    token: Token::Plus,
+                    span: 2..3,
+                },
+                expr!(
+                    Number,
+                    Lexeme {
+                        slice: String::from("3"),
+                        token: Token::Num,
+                        span: 4..5
+                    }
+                )
+            ),
+            Lexeme {
+                slice: String::from("+"),
+                token: Token::Plus,
+                span: 6..7
+            },
+            expr!(
+                Number,
+                Lexeme {
+                    slice: String::from("2"),
+                    token: Token::Num,
+                    span: 8..9
+                }
+            )
+        );
+        assert_eq!(result.unwrap(), expr);
     }
 }

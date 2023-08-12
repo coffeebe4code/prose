@@ -2,16 +2,14 @@ use logos::Logos;
 
 #[derive(Logos, Copy, Clone, Debug, PartialEq)]
 pub enum Token {
-    #[token("use")]
-    Use,
-    #[token("export")]
-    Export,
     #[token("error")]
     Error,
+    #[token("defer")]
+    Defer,
+    #[token("errdefer")]
+    ErrDefer,
     #[token("any")]
     Any,
-    #[token("def")]
-    Def,
     #[token("macro")]
     Macro,
     #[token("test")]
@@ -22,8 +20,6 @@ pub enum Token {
     Let,
     #[token("const")]
     Const,
-    #[token("once")]
-    Once,
     #[token("i32")]
     I32,
     #[token("u32")]
@@ -48,8 +44,6 @@ pub enum Token {
     D64,
     #[token("f32")]
     F32,
-    #[token("f128")]
-    F128,
     #[token("d128")]
     D128,
     #[token("if")]
@@ -60,8 +54,8 @@ pub enum Token {
     Type,
     #[token("self")]
     WSelf,
-    #[token("null")]
-    Null,
+    #[token("undefined")]
+    Undefined,
     #[token("char")]
     Char,
     #[token("string")]
@@ -70,16 +64,12 @@ pub enum Token {
     Switch,
     #[token("for")]
     For,
-    #[token("in")]
-    In,
     #[token("of")]
     Of,
     #[token("break")]
     Break,
     #[token("enum")]
     Enum,
-    #[token("union")]
-    Union,
     #[token("pub")]
     Pub,
     #[token("ret")]
@@ -108,7 +98,7 @@ pub enum Token {
     #[token("->")]
     Yield,
     #[token("=>")]
-    Lambda,
+    Arrow,
     #[token("(")]
     OParen,
     #[token(")")]

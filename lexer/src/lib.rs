@@ -3,14 +3,14 @@ use std::ops::Range;
 use token::Token;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Lexeme<'s> {
+pub struct Lexeme {
     pub token: Token,
     pub span: Range<usize>,
-    pub slice: &'s str,
+    pub slice: String,
 }
 
 pub struct ProseLexer<'s> {
-    current: Option<Lexeme<'s>>,
+    current: Option<Lexeme>,
     lexer: Lexer<'s, Token>,
 }
 
@@ -21,26 +21,26 @@ impl<'s> ProseLexer<'s> {
             lexer: Token::lexer(buffer),
         };
     }
-    pub fn collect_if(&mut self, token: Token) -> Option<Lexeme<'s>> {
+    pub fn collect_if(&mut self, token: Token) -> Option<Lexeme> {
         if self.peek()?.token.is_kind(token) {
             return Some(self.collect());
         }
         return None;
     }
-    pub fn collect_of_if(&mut self, token: &[Token]) -> Option<Lexeme<'s>> {
+    pub fn collect_of_if(&mut self, token: &[Token]) -> Option<Lexeme> {
         if self.peek()?.token.is_of_kind(token) {
             return Some(self.collect());
         }
         return None;
     }
-    pub fn peek(&mut self) -> Option<Lexeme<'s>> {
+    pub fn peek(&mut self) -> Option<Lexeme> {
         if self.current.is_none() {
             match self.lexer.next() {
                 Some(val) => {
                     self.current = Some(Lexeme {
                         token: val.unwrap(),
                         span: self.lexer.span(),
-                        slice: self.lexer.slice(),
+                        slice: String::from(self.lexer.slice()),
                     })
                 }
                 None => self.current = None,
@@ -60,7 +60,7 @@ impl<'s> ProseLexer<'s> {
             None => false,
         }
     }
-    pub fn collect(&mut self) -> Lexeme<'s> {
+    pub fn collect(&mut self) -> Lexeme {
         let temp = self.current.clone().unwrap();
         self.current = None;
         return temp;

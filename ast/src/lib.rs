@@ -1,38 +1,76 @@
 use lexer::Lexeme;
 
-#[derive(Debug, PartialEq)]
-pub enum Expr<'s> {
-    //    Body(Vec<Expr<'s>>),
-    //    // mutability, identifier, signature, assignment, expr, semicolon
-    //    Assignment(
-    //        Token,
-    //        Box<Expr<'s>>,
-    //        Option<Box<Expr<'s>>>,
-    //        Token,
-    //        Box<Expr<'s>>,
-    //        Option<Token>,
-    //    ),
-    //    // identifier, asop, expr, semicolon
-    //    Reassignment(Box<Expr<'s>>, Token, Box<Expr<'s>>, Option<Token>),
-    //    // left expr, op, right expr
-    BinOp(Box<Expr<'s>>, Lexeme<'s>, Box<Expr<'s>>),
-    UnaryOp(Box<Expr<'s>>, Lexeme<'s>),
-    //    Identity(Lexeme<'s>),
-    RetFn(Box<Expr<'s>>),
-    Number(Lexeme<'s>),
-    //    Single(Token),
+#[derive(Debug, Clone, PartialEq)]
+pub struct UnOp {
+    pub op: Lexeme,
+    pub val: Box<Expr>,
+}
+impl UnOp {
+    pub fn new(op: Lexeme, val: Box<Expr>) -> Self {
+        UnOp { op, val }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Symbol {
+    pub val: Lexeme,
+}
+
+impl Symbol {
+    pub fn new(val: Lexeme) -> Self {
+        Symbol { val }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Number {
+    pub val: Lexeme,
+}
+
+impl Number {
+    pub fn new(val: Lexeme) -> Self {
+        Number { val }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct BinOp {
+    pub left: Box<Expr>,
+    pub op: Lexeme,
+    pub right: Box<Expr>,
+}
+
+impl BinOp {
+    pub fn new(left: Box<Expr>, op: Lexeme, right: Box<Expr>) -> Self {
+        BinOp { left, op, right }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Expr {
+    BinOp(BinOp),
+    UnOp(UnOp),
+    Number(Number),
+    Symbol(Symbol),
 }
 
 #[macro_export]
-macro_rules! make_expr {
+macro_rules! expr {
     ($val:ident, $($inner:tt)*) => {
-        Box::new(Expr::$val($($inner)*));
+        Box::new(Expr::$val($val::new($($inner)*)))
     };
 }
 
 #[macro_export]
 macro_rules! bubble_expr {
     ($val:ident, $($inner:tt)*) => {
-        Some(Ok(Box::new(Expr::$val($($inner)*))));
+        Ok(Box::new(Expr::$val($val::new($($inner)*))))
+    };
+}
+
+#[macro_export]
+macro_rules! opt_expr {
+    ($val:ident, $($inner:tt)*) => {
+        Some(Box::new(Expr::$val($val::new($($inner)*))))
     };
 }
