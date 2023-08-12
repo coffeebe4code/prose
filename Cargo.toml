@@ -1,16 +1,10 @@
 [workspace]
 members = [
   "token",
+  "perror",
   "lexer",
   "parser",
   "ast",
   "ir",
-  "gen",
-  "block",
-  "opcode",
-  "hash",
-  "ssa",
-  "perror",
-  "instr",
   "e2e",
 ]

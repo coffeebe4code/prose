@@ -10,6 +10,4 @@ ast = { path = "../ast" }
 lexer = { path = "../lexer" }
 token = { path = "../token" }
 parser = { path = "../parser" }
-gen = { path = "../gen" }
 ir = { path = "../ir" }
-perror = { path = "../perror" }

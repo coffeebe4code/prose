@@ -6,9 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-block = { path="../block" }
 ast = { path="../ast" }
-gen = { path="../gen" }
-opcode = { path="../opcode" }
-instr = { path="../instr" }
 token = { path="../token" }
+cranelift-frontend = "0"
+cranelift-codegen = "0"
