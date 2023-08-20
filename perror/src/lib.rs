@@ -4,7 +4,7 @@ pub type Result<T> = std::result::Result<T, ParseError>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ParseError {
-    title: &'static str,
+    title: String,
 }
 
 impl fmt::Display for ParseError {
@@ -19,7 +19,7 @@ impl fmt::Display for ParseError {
 }
 
 impl ParseError {
-    pub fn new(title: &'static str) -> ParseError {
+    pub fn new(title: String) -> ParseError {
         ParseError { title }
     }
 }
