@@ -72,7 +72,7 @@ pub enum Token {
     Enum,
     #[token("pub")]
     Pub,
-    #[token("ret")]
+    #[token("return")]
     Return,
     #[token("await")]
     Await,

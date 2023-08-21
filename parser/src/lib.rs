@@ -1,10 +1,11 @@
 use ast::*;
+use lexer::Lexeme;
 use lexer::ProseLexer;
 use perror::*;
 use token::Token;
 
+pub type ResultOptExpr = Result<Option<Box<Expr>>>;
 pub type ResultExpr = Result<Box<Expr>>;
-pub type BubbleExpr = Option<ResultExpr>;
 pub type OptExpr = Option<Box<Expr>>;
 
 pub struct Parser<'s> {
@@ -15,71 +16,146 @@ impl<'s> Parser<'s> {
     pub fn new(lexer: ProseLexer<'s>) -> Self {
         Parser { lexer }
     }
+    pub fn ret(&mut self) -> ResultExpr {
+        let span = self
+            .lexer
+            .collect_if(Token::Return)
+            .expect_token("expected return keyword".to_string())?;
+        self.or_cmp().result_or(|expr| {
+            self.lexer
+                .collect_if(Token::SColon)
+                .expect_token("expected ';'".to_string())?;
+            result_expr!(RetOp, span, expr)
+        })
+    }
+    pub fn func(&mut self) -> ResultExpr {
+        let has_pub = self.lexer.collect_if(Token::Pub);
+        let mutability = self
+            .lexer
+            .collect_of_if(&[Token::Let, Token::Const])
+            .expect_token("expected mutability".to_string())?;
+        let identifier = self
+            .ident()
+            .expect_expr("expected identifier".to_string())?;
+        let _ = self
+            .lexer
+            .collect_if(Token::As)
+            .expect_token("expected =".to_string())?;
+        let _ = self
+            .lexer
+            .collect_if(Token::Func)
+            .expect_token("expected fn keyword".to_string())?;
+        let _ = self
+            .lexer
+            .collect_if(Token::OParen)
+            .expect_token("expected '('".to_string())?;
+        let args = self.args()?;
+        let _ = self
+            .lexer
+            .collect_if(Token::CParen)
+            .expect_token("expected '('".to_string())?;
+        let block = self.block()?;
+        result_expr!(FuncDef, has_pub, mutability, identifier, args, block)
+    }
+    pub fn ty(&mut self) -> ResultExpr {
+        self.lexer
+            .collect_of_if(&[Token::Num, Token::Any, Token::U64])
+            .convert_expr(|span| expr!(TypeSimple, span))
+            .convert_to_result("expected type".to_string())
+    }
+    pub fn args(&mut self) -> ResultOptExpr {
+        if let Some(arg_local) = self.arg() {
+            let mut arg_list: Vec<Box<Expr>> = vec![];
+            arg_list.push(arg_local);
+            while let Some(_comma) = self.lexer.collect_if(Token::Comma) {
+                arg_list.push(
+                    self.arg()
+                        .expect_expr("expected argument definition".to_string())?,
+                );
+            }
+            return bubble_expr!(ArgsDef, arg_list);
+        }
+        Ok(None)
+    }
+    pub fn arg(&mut self) -> OptExpr {
+        self.ident()
+    }
+    pub fn block(&mut self) -> ResultExpr {
+        self.lexer
+            .collect_if(Token::OBrace)
+            .expect_token("expected '{'".to_string())?;
+        self.ret().result_or(|expr| {
+            self.lexer
+                .collect_if(Token::CBrace)
+                .expect_token("expected '}'".to_string())?;
+            result_expr!(Block, vec![expr])
+        })
+    }
     pub fn or_cmp(&mut self) -> ResultExpr {
-        self.and_cmp().bubble_error(|mut left| {
+        self.and_cmp().result_or(|mut left| {
             while let Some(bin) = self.lexer.collect_if(Token::Or) {
                 left = self
                     .and_cmp()
-                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+                    .result_or(|right| result_expr!(BinOp, left, bin, right))?
             }
             Ok(left)
         })
     }
     pub fn and_cmp(&mut self) -> ResultExpr {
-        self.equality().bubble_error(|mut left| {
+        self.equality().result_or(|mut left| {
             while let Some(bin) = self.lexer.collect_if(Token::And) {
                 left = self
                     .equality()
-                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+                    .result_or(|right| result_expr!(BinOp, left, bin, right))?
             }
             Ok(left)
         })
     }
     pub fn equality(&mut self) -> ResultExpr {
-        self.cmp().bubble_error(|mut left| {
+        self.cmp().result_or(|mut left| {
             while let Some(bin) = self
                 .lexer
                 .collect_of_if(&[Token::Equality, Token::NotEquality])
             {
                 left = self
                     .cmp()
-                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+                    .result_or(|right| result_expr!(BinOp, left, bin, right))?
             }
             Ok(left)
         })
     }
     pub fn cmp(&mut self) -> ResultExpr {
-        self.low_bin().bubble_error(|mut left| {
+        self.low_bin().result_or(|mut left| {
             while let Some(bin) =
                 self.lexer
                     .collect_of_if(&[Token::Gt, Token::GtEq, Token::Lt, Token::LtEq])
             {
                 left = self
                     .low_bin()
-                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+                    .result_or(|right| result_expr!(BinOp, left, bin, right))?
             }
             Ok(left)
         })
     }
     pub fn low_bin(&mut self) -> ResultExpr {
-        self.high_bin().bubble_error(|mut left| {
+        self.high_bin().result_or(|mut left| {
             while let Some(bin) = self.lexer.collect_of_if(&[Token::Plus, Token::Sub]) {
                 left = self
                     .high_bin()
-                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+                    .result_or(|right| result_expr!(BinOp, left, bin, right))?
             }
             Ok(left)
         })
     }
     pub fn high_bin(&mut self) -> ResultExpr {
-        self.unary().bubble_error(|mut left| {
+        self.unary().result_or(|mut left| {
             while let Some(bin) = self
                 .lexer
                 .collect_of_if(&[Token::Div, Token::Mul, Token::Mod])
             {
                 left = self
                     .unary()
-                    .bubble_error(|right| bubble_expr!(BinOp, left, bin, right))?
+                    .result_or(|right| result_expr!(BinOp, left, bin, right))?
             }
             return Ok(left);
         })
@@ -88,11 +164,11 @@ impl<'s> Parser<'s> {
         let lexeme = self.lexer.collect_of_if(&[Token::Not, Token::Sub]);
         if let Some(x) = lexeme {
             let expr = self.unary();
-            return expr.bubble_error(|result| bubble_expr!(UnOp, x, result));
+            return expr.result_or(|result| result_expr!(UnOp, x, result));
         }
         self.num()
-            .or_else_do(|| self.ident())
-            .convert("number or identifier".to_string())
+            .if_none_do(|| self.ident())
+            .convert_to_result("number or identifier".to_string())
     }
     pub fn num(&mut self) -> OptExpr {
         let lexeme = self.lexer.collect_if(Token::Num)?;
@@ -104,37 +180,44 @@ impl<'s> Parser<'s> {
     }
 }
 
-trait ExpectSomeVal {
-    fn expect_some_val(self, title: String) -> BubbleExpr;
+trait ExpectToken {
+    fn expect_token(self, title: String) -> Result<Lexeme>;
 }
 
-trait BubbleError {
-    fn bubble_error(self, func: impl FnOnce(Box<Expr>) -> ResultExpr) -> ResultExpr;
+trait ExpectExpr {
+    fn expect_expr(self, title: String) -> ResultExpr;
 }
 
-trait OrElseDo {
-    fn or_else_do(self, func: impl FnOnce() -> OptExpr) -> OptExpr;
+trait ExpectOkSome {
+    fn expect_ok_some(self, title: String) -> ResultOptExpr;
 }
 
-trait Convert {
-    fn convert(self, title: String) -> ResultExpr;
+trait ResultOr {
+    fn result_or(self, func: impl FnOnce(Box<Expr>) -> ResultExpr) -> ResultExpr;
+}
+
+trait ResultOptOr {
+    fn result_opt_or(self, func: impl FnOnce(Box<Expr>) -> ResultOptExpr) -> ResultOptExpr;
+}
+
+trait IfNoneDo {
+    fn if_none_do(self, func: impl FnOnce() -> OptExpr) -> OptExpr;
+}
+
+trait ConvertToResult {
+    fn convert_to_result(self, title: String) -> ResultExpr;
+}
+
+trait ConvertOptExpr {
+    fn convert_expr(self, func: impl FnOnce(Lexeme) -> Box<Expr>) -> OptExpr;
 }
 
 trait ChainExpect {
     fn chain_expect(self, title: String) -> ResultExpr;
 }
 
-impl ExpectSomeVal for BubbleExpr {
-    fn expect_some_val(self, title: String) -> BubbleExpr {
-        if self.is_none() {
-            return Some(Err(ParseError::new(title)));
-        }
-        self
-    }
-}
-
-impl BubbleError for ResultExpr {
-    fn bubble_error(self, func: impl FnOnce(Box<Expr>) -> ResultExpr) -> ResultExpr {
+impl ResultOr for ResultExpr {
+    fn result_or(self, func: impl FnOnce(Box<Expr>) -> ResultExpr) -> ResultExpr {
         match self {
             Err(err) => Err(err),
             Ok(inner) => func(inner),
@@ -142,8 +225,20 @@ impl BubbleError for ResultExpr {
     }
 }
 
-impl OrElseDo for OptExpr {
-    fn or_else_do(self, func: impl FnOnce() -> OptExpr) -> OptExpr {
+//impl ExpectOkSome for ResultOptExpr {
+//    fn expect_ok_some(self, title: String) -> ResultOptExpr {
+//        match self {
+//            Err(err) => err,
+//            Ok(inner) => match inner {
+//                Some(exp) => exp,
+//                None => Err(ParseError::new(title)),
+//            },
+//        }
+//    }
+//}
+
+impl IfNoneDo for OptExpr {
+    fn if_none_do(self, func: impl FnOnce() -> OptExpr) -> OptExpr {
         match self {
             None => return func(),
             Some(val) => return Some(val),
@@ -151,10 +246,37 @@ impl OrElseDo for OptExpr {
     }
 }
 
-impl Convert for OptExpr {
-    fn convert(self, title: String) -> ResultExpr {
+impl ConvertOptExpr for Option<Lexeme> {
+    fn convert_expr(self, func: impl FnOnce(Lexeme) -> Box<Expr>) -> OptExpr {
         match self {
-            None => Err(ParseError::new(title)),
+            None => None,
+            Some(val) => Some(func(val)),
+        }
+    }
+}
+
+impl ExpectToken for Option<Lexeme> {
+    fn expect_token(self, title: String) -> Result<Lexeme> {
+        match self {
+            None => Err(ParserError::new(title)),
+            Some(val) => Ok(val),
+        }
+    }
+}
+
+impl ExpectExpr for OptExpr {
+    fn expect_expr(self, title: String) -> ResultExpr {
+        match self {
+            None => Err(ParserError::new(title)),
+            Some(val) => Ok(val),
+        }
+    }
+}
+
+impl ConvertToResult for OptExpr {
+    fn convert_to_result(self, title: String) -> ResultExpr {
+        match self {
+            None => Err(ParserError::new(title)),
             Some(val) => Ok(val),
         }
     }
@@ -203,7 +325,7 @@ mod tests {
         let lexer = ProseLexer::new("-");
         let mut parser = Parser::new(lexer);
         let result = parser.unary();
-        let error = ParseError::new("number or identifier".to_string());
+        let error = ParserError::new("number or identifier".to_string());
         assert_eq!(result.expect_err("failed test"), error);
     }
     #[test]
@@ -211,7 +333,7 @@ mod tests {
         let lexer = ProseLexer::new("5 *");
         let mut parser = Parser::new(lexer);
         let result = parser.high_bin();
-        let error = ParseError::new("number or identifier".to_string());
+        let error = ParserError::new("number or identifier".to_string());
         assert_eq!(result.expect_err("failed test"), error);
     }
     #[test]
@@ -351,6 +473,64 @@ mod tests {
                     token: Token::Num,
                     span: 8..9
                 }
+            )
+        );
+        assert_eq!(result.unwrap(), expr);
+    }
+    #[test]
+    fn it_should_parse_fn() {
+        let lexer = ProseLexer::new("pub const add = fn(x) { return x; }");
+        let mut parser = Parser::new(lexer);
+        let result = parser.func();
+        let expr = expr!(
+            FuncDef,
+            Some(Lexeme {
+                slice: String::from("pub"),
+                token: Token::Pub,
+                span: 0..3
+            }),
+            Lexeme {
+                slice: "const".to_string(),
+                token: Token::Const,
+                span: 4..9
+            },
+            expr!(
+                Symbol,
+                Lexeme {
+                    slice: "add".to_string(),
+                    token: Token::Symbol,
+                    span: 10..13
+                }
+            ),
+            Some(expr!(
+                ArgsDef,
+                vec![expr!(
+                    Symbol,
+                    Lexeme {
+                        slice: "x".to_string(),
+                        token: Token::Symbol,
+                        span: 19..20
+                    }
+                )]
+            )),
+            expr!(
+                Block,
+                vec![expr!(
+                    RetOp,
+                    Lexeme {
+                        slice: "return".to_string(),
+                        token: Token::Return,
+                        span: 24..30
+                    },
+                    expr!(
+                        Symbol,
+                        Lexeme {
+                            slice: "x".to_string(),
+                            token: Token::Symbol,
+                            span: 31..32
+                        }
+                    )
+                )]
             )
         );
         assert_eq!(result.unwrap(), expr);
