@@ -7,5 +7,4 @@ fn main() {
     let mut parse = Parser::new(lex);
     let ast_parsed = parse.func();
     let mut ir = FIRSource::new(0);
-    ir.begin(&ast_parsed.unwrap());
 }
