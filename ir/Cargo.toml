@@ -8,5 +8,7 @@ edition = "2021"
 [dependencies]
 ast = { path="../ast" }
 token = { path="../token" }
+perror = { path="../perror" }
+lexer = { path="../lexer" }
 cranelift-frontend = "0"
 cranelift-codegen = "0"
