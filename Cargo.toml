@@ -4,6 +4,7 @@ members = [
   "perror",
   "lexer",
   "parser",
+  "obj",
   "ast",
   "ir",
   "e2e",
