@@ -11,15 +11,15 @@ use cranelift_frontend::*;
 use cranelift_frontend::{FunctionBuilder, FunctionBuilderContext};
 use perror::*;
 
-pub struct FIRSource {
+pub struct IRSource {
     package: u32,
     fname: u32,
     variables: usize,
 }
 
-impl FIRSource {
+impl IRSource {
     pub fn new(package: u32) -> Self {
-        FIRSource {
+        IRSource {
             package,
             fname: 0,
             variables: 0,
@@ -30,12 +30,10 @@ impl FIRSource {
         op: &Block,
         builder: &mut FunctionBuilder,
     ) -> ResultFir<Variable> {
-        println!("1");
         let temp = self.recurse(&op.exprs[0], builder).unwrap();
         Ok(temp)
     }
     pub fn handle_ret(&mut self, op: &RetOp, builder: &mut FunctionBuilder) -> ResultFir<Variable> {
-        println!("2");
         let temp = self.recurse(&op.expr, builder).unwrap();
         let arg = builder.use_var(temp);
         builder.ins().return_(&[arg]);
@@ -46,7 +44,6 @@ impl FIRSource {
         num: &Number,
         builder: &mut FunctionBuilder,
     ) -> ResultFir<Variable> {
-        println!("3");
         let result = Variable::new(self.variables);
         self.variables += 1;
         builder.declare_var(result, I64);
@@ -70,13 +67,8 @@ impl FIRSource {
         let name = UserFuncName::user(self.package, self.fname);
         // TODO:: put the optional vec of expr directly on funcdef
         if let Some(val) = func_def.args {
-            match *val {
-                Expr::ArgsDef(arg) => arg
-                    .args
-                    .iter()
-                    .for_each(|_x| sig.params.push(AbiParam::new(I64))),
-                _ => panic!("developer error, args vec invalid"),
-            }
+            val.iter()
+                .for_each(|_x| sig.params.push(AbiParam::new(I64)));
         }
         sig.returns.push(AbiParam::new(I64));
         let mut func = Function::with_name_signature(name, sig);
@@ -143,7 +135,7 @@ mod tests {
                 )]
             ),
         );
-        let mut fir = FIRSource::new(0);
+        let mut fir = IRSource::new(0);
         let result = fir.begin(func_def);
         /*
          * function u0:0() -> i64 system_v

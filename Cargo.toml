@@ -4,8 +4,11 @@ members = [
   "perror",
   "lexer",
   "parser",
-  "obj",
+  "object",
+  "linker",
   "ast",
   "ir",
   "e2e",
 ]
+resolver = "2"
+
