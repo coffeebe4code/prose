@@ -63,7 +63,7 @@ impl<'s> Parser<'s> {
             .convert_expr(|span| expr!(TypeSimple, span))
             .convert_to_result("expected type".to_string())
     }
-    pub fn args(&mut self) -> ResultOptExpr {
+    pub fn args(&mut self) -> Result<Option<Vec<Box<Expr>>>> {
         if let Some(arg_local) = self.arg() {
             let mut arg_list: Vec<Box<Expr>> = vec![];
             arg_list.push(arg_local);
@@ -73,7 +73,7 @@ impl<'s> Parser<'s> {
                         .expect_expr("expected argument definition".to_string())?,
                 );
             }
-            return bubble_expr!(ArgsDef, arg_list);
+            return Ok(Some(arg_list));
         }
         Ok(None)
     }
@@ -188,10 +188,6 @@ trait ExpectExpr {
     fn expect_expr(self, title: String) -> ResultExpr;
 }
 
-trait ExpectOkSome {
-    fn expect_ok_some(self, title: String) -> ResultOptExpr;
-}
-
 trait ResultOr {
     fn result_or(self, func: impl FnOnce(Box<Expr>) -> ResultExpr) -> ResultExpr;
 }
@@ -224,18 +220,6 @@ impl ResultOr for ResultExpr {
         }
     }
 }
-
-//impl ExpectOkSome for ResultOptExpr {
-//    fn expect_ok_some(self, title: String) -> ResultOptExpr {
-//        match self {
-//            Err(err) => err,
-//            Ok(inner) => match inner {
-//                Some(exp) => exp,
-//                None => Err(ParseError::new(title)),
-//            },
-//        }
-//    }
-//}
 
 impl IfNoneDo for OptExpr {
     fn if_none_do(self, func: impl FnOnce() -> OptExpr) -> OptExpr {
@@ -502,17 +486,14 @@ mod tests {
                     span: 10..13
                 }
             ),
-            Some(expr!(
-                ArgsDef,
-                vec![expr!(
-                    Symbol,
-                    Lexeme {
-                        slice: "x".to_string(),
-                        token: Token::Symbol,
-                        span: 19..20
-                    }
-                )]
-            )),
+            Some(vec![expr!(
+                Symbol,
+                Lexeme {
+                    slice: "x".to_string(),
+                    token: Token::Symbol,
+                    span: 19..20
+                }
+            )]),
             expr!(
                 Block,
                 vec![expr!(

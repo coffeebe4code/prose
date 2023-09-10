@@ -5,7 +5,7 @@ pub struct FuncDef {
     pub visibility: Option<Lexeme>,
     pub mutability: Lexeme,
     pub identifier: Box<Expr>,
-    pub args: Option<Box<Expr>>,
+    pub args: Option<Vec<Box<Expr>>>,
     pub block: Box<Expr>,
 }
 
@@ -14,7 +14,7 @@ impl FuncDef {
         visibility: Option<Lexeme>,
         mutability: Lexeme,
         identifier: Box<Expr>,
-        args: Option<Box<Expr>>,
+        args: Option<Vec<Box<Expr>>>,
         block: Box<Expr>,
     ) -> Self {
         FuncDef {
