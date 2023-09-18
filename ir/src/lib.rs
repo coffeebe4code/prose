@@ -10,20 +10,37 @@ use cranelift_codegen::verifier::verify_function;
 use cranelift_frontend::*;
 use cranelift_frontend::{FunctionBuilder, FunctionBuilderContext};
 use perror::*;
+use slt::*;
 
 pub struct IRSource {
     package: u32,
     fname: u32,
     variables: usize,
+    scope: SLT,
 }
 
 impl IRSource {
-    pub fn new(package: u32) -> Self {
+    pub fn new(package: u32, scope: SLT) -> Self {
         IRSource {
             package,
             fname: 0,
             variables: 0,
+            scope,
         }
+    }
+    pub fn handle_assign(
+        &mut self,
+        op: &AsDef,
+        builder: &mut FunctionBuilder,
+    ) -> ResultFir<Variable> {
+        let result = Variable::new(self.variables);
+        self.variables += 1;
+        builder.declare_var(result, I64);
+        let temp = self.recurse(&op.expr, builder).unwrap();
+        let x = builder.use_var(temp);
+        self.scope.add(&op.identifier.span.slice, temp.as_u32());
+        builder.def_var(temp, x);
+        Ok(temp)
     }
     pub fn handle_block(
         &mut self,
@@ -58,6 +75,7 @@ impl IRSource {
             Expr::Block(op) => self.handle_block(&op, builder),
             Expr::RetOp(op) => self.handle_ret(&op, builder),
             Expr::Number(op) => self.handle_num(&op, builder),
+            Expr::AsDef(op) => self.handle_assign(&op, builder),
             _ => panic!("developer error unexpected expression"),
         }
     }
