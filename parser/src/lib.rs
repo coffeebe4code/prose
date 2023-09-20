@@ -80,16 +80,48 @@ impl<'s> Parser<'s> {
     pub fn arg(&mut self) -> OptExpr {
         self.ident()
     }
+    pub fn expr(&mut self) -> ResultExpr {
+        match self.inner_assign() {
+            Ok(None) => self.ret(),
+            Ok(Some(x)) => Ok(x),
+            Err(x) => Err(x),
+        }
+    }
+    pub fn inner_assign(&mut self) -> ResultOptExpr {
+        let mutability = self.lexer.collect_of_if(&[Token::Let, Token::Const]);
+        if let Some(muta) = mutability {
+            let identifier = self
+                .ident()
+                .expect_expr("expected identifier".to_string())?;
+            // TODO:: Add various assignments
+            let _ = self
+                .lexer
+                .collect_of_if(&[Token::As])
+                .expect_token("expected =".to_string())?;
+            return self.or_cmp().convert_to_result_opt().result_opt_or(|asgn| {
+                self.lexer
+                    .collect_if(Token::SColon)
+                    .expect_token("expected ';'".to_string())?;
+                bubble_expr!(AsDef, muta, identifier, asgn)
+            });
+        }
+        Ok(None)
+    }
     pub fn block(&mut self) -> ResultExpr {
         self.lexer
             .collect_if(Token::OBrace)
             .expect_token("expected '{'".to_string())?;
-        self.ret().result_or(|expr| {
-            self.lexer
-                .collect_if(Token::CBrace)
-                .expect_token("expected '}'".to_string())?;
-            result_expr!(Block, vec![expr])
-        })
+        let mut exprs: Vec<Box<Expr>> = vec![];
+        while let Ok(Some(x)) = self.inner_assign() {
+            exprs.push(x);
+        }
+        if let Ok(x) = self.ret() {
+            exprs.push(x);
+        }
+        self.lexer
+            .collect_if(Token::CBrace)
+            .expect_token("expected '}'".to_string())?;
+        result_expr!(Block, exprs)
     }
     pub fn or_cmp(&mut self) -> ResultExpr {
         self.and_cmp().result_or(|mut left| {
@@ -204,6 +236,10 @@ trait ConvertToResult {
     fn convert_to_result(self, title: String) -> ResultExpr;
 }
 
+trait ConvertToResultOpt {
+    fn convert_to_result_opt(self) -> ResultOptExpr;
+}
+
 trait ConvertOptExpr {
     fn convert_expr(self, func: impl FnOnce(Lexeme) -> Box<Expr>) -> OptExpr;
 }
@@ -217,6 +253,16 @@ impl ResultOr for ResultExpr {
         match self {
             Err(err) => Err(err),
             Ok(inner) => func(inner),
+        }
+    }
+}
+
+impl ResultOptOr for ResultOptExpr {
+    fn result_opt_or(self, func: impl FnOnce(Box<Expr>) -> ResultOptExpr) -> ResultOptExpr {
+        match self {
+            Err(err) => Err(err),
+            Ok(Some(inner)) => func(inner),
+            Ok(None) => Ok(None),
         }
     }
 }
@@ -262,6 +308,15 @@ impl ConvertToResult for OptExpr {
         match self {
             None => Err(ParserError::new(title)),
             Some(val) => Ok(val),
+        }
+    }
+}
+
+impl ConvertToResultOpt for ResultExpr {
+    fn convert_to_result_opt(self) -> ResultOptExpr {
+        match self {
+            Err(err) => Err(err),
+            Ok(val) => Ok(Some(val)),
         }
     }
 }

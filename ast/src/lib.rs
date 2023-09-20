@@ -1,6 +1,23 @@
 use lexer::Lexeme;
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct AsDef {
+    pub mutability: Lexeme,
+    pub identifier: Box<Expr>,
+    pub expr: Box<Expr>,
+}
+
+impl AsDef {
+    pub fn new(mutability: Lexeme, identifier: Box<Expr>, expr: Box<Expr>) -> Self {
+        AsDef {
+            mutability,
+            identifier,
+            expr,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct FuncDef {
     pub visibility: Option<Lexeme>,
     pub mutability: Lexeme,
@@ -127,6 +144,16 @@ pub enum Expr {
     TypeSimple(TypeSimple),
     ArgsDef(ArgsDef),
     FuncDef(FuncDef),
+    AsDef(AsDef),
+}
+
+impl Expr {
+    pub fn into_symbol(&self) -> Symbol {
+        match self {
+            Expr::Symbol(x) => x.to_owned(),
+            _ => panic!("issue no symbol found"),
+        }
+    }
 }
 
 #[macro_export]
