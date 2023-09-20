@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 pub struct SLT {
-    table: BTreeMap<String, usize>,
+    table: BTreeMap<String, u32>,
 }
 
 impl SLT {
@@ -9,10 +9,10 @@ impl SLT {
             table: BTreeMap::new(),
         }
     }
-    pub fn add(&mut self, value: String, variable: usize) -> () {
+    pub fn add(&mut self, value: String, variable: u32) -> () {
         self.table.insert(value, variable);
     }
-    pub fn lookup(&self, value: &String) -> Option<usize> {
+    pub fn lookup(&self, value: &str) -> Option<u32> {
         match self.table.get(value) {
             Some(v) => Some(*v),
             _ => None,

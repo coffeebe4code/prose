@@ -147,6 +147,15 @@ pub enum Expr {
     AsDef(AsDef),
 }
 
+impl Expr {
+    pub fn into_symbol(&self) -> Symbol {
+        match self {
+            Expr::Symbol(x) => x.to_owned(),
+            _ => panic!("issue no symbol found"),
+        }
+    }
+}
+
 #[macro_export]
 macro_rules! expr {
     ($val:ident, $($inner:tt)*) => {
