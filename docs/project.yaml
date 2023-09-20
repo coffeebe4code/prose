@@ -1,7 +1,8 @@
-type: Project
-name: 
-details:
-
+type: project
+name:  
+targets:
+  - 
+hooks:
 ---
 type: Exe
 name: ty

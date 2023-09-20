@@ -8,6 +8,8 @@ members = [
   "object",
   "linker",
   "ast",
+  "project",
+  "ty",
   "ir",
   "e2e",
 ]
