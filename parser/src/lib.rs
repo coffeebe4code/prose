@@ -502,15 +502,15 @@ mod tests {
                     RetOp,
                     Lexeme {
                         slice: String::from("return"),
-                        token: Token::Let,
-                        span: 2..5,
+                        token: Token::Return,
+                        span: 13..19,
                     },
                     expr!(
                         Symbol,
                         Lexeme {
                             slice: String::from("x"),
                             token: Token::Symbol,
-                            span: 6..7
+                            span: 20..21
                         }
                     )
                 )
