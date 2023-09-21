@@ -80,20 +80,12 @@ impl<'s> Parser<'s> {
     pub fn arg(&mut self) -> OptExpr {
         self.ident()
     }
-    pub fn expr(&mut self) -> ResultExpr {
-        match self.inner_assign() {
-            Ok(None) => self.ret(),
-            Ok(Some(x)) => Ok(x),
-            Err(x) => Err(x),
-        }
-    }
     pub fn inner_assign(&mut self) -> ResultOptExpr {
         let mutability = self.lexer.collect_of_if(&[Token::Let, Token::Const]);
         if let Some(muta) = mutability {
             let identifier = self
                 .ident()
                 .expect_expr("expected identifier".to_string())?;
-            // TODO:: Add various assignments
             let _ = self
                 .lexer
                 .collect_of_if(&[Token::As])
@@ -112,9 +104,14 @@ impl<'s> Parser<'s> {
             .collect_if(Token::OBrace)
             .expect_token("expected '{'".to_string())?;
         let mut exprs: Vec<Box<Expr>> = vec![];
-        while let Ok(Some(x)) = self.inner_assign() {
-            exprs.push(x);
+        loop {
+            match self.inner_assign() {
+                Ok(Some(x)) => exprs.push(x),
+                Ok(None) => break,
+                Err(e) => return Err(e),
+            }
         }
+
         if let Ok(x) = self.ret() {
             exprs.push(x);
         }
@@ -465,6 +462,59 @@ mod tests {
                     span: 12..13,
                 }
             )
+        );
+        assert_eq!(result.unwrap(), expr);
+    }
+
+    #[test]
+    fn it_should_parse_block() {
+        let lexer = ProseLexer::new("{ let x = 5; return x; }");
+        let mut parser = Parser::new(lexer);
+        let result = parser.block();
+        let expr = expr!(
+            Block,
+            vec![
+                expr!(
+                    AsDef,
+                    Lexeme {
+                        slice: String::from("let"),
+                        token: Token::Let,
+                        span: 2..5,
+                    },
+                    expr!(
+                        Symbol,
+                        Lexeme {
+                            slice: String::from("x"),
+                            token: Token::Symbol,
+                            span: 6..7
+                        }
+                    ),
+                    expr!(
+                        Number,
+                        Lexeme {
+                            slice: String::from("5"),
+                            token: Token::Num,
+                            span: 10..11
+                        }
+                    )
+                ),
+                expr!(
+                    RetOp,
+                    Lexeme {
+                        slice: String::from("return"),
+                        token: Token::Let,
+                        span: 2..5,
+                    },
+                    expr!(
+                        Symbol,
+                        Lexeme {
+                            slice: String::from("x"),
+                            token: Token::Symbol,
+                            span: 6..7
+                        }
+                    )
+                )
+            ]
         );
         assert_eq!(result.unwrap(), expr);
     }
