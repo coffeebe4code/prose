@@ -66,6 +66,8 @@ pub enum Token {
     For,
     #[token("of")]
     Of,
+    #[token("in")]
+    In,
     #[token("break")]
     Break,
     #[token("enum")]
@@ -95,6 +97,8 @@ pub enum Token {
     #[token("fn")]
     Func,
 
+    #[token("|>")]
+    Split,
     #[token("->")]
     Yield,
     #[token("=>")]
@@ -269,5 +273,10 @@ mod tests {
         assert_eq!(lexer7.next(), Some(Ok(Token::Num)));
         assert_eq!(lexer7.next(), Some(Ok(Token::Decimal)));
         assert_eq!(lexer8.next(), Some(Ok(Token::Decimal)));
+    }
+    #[test]
+    fn it_tokenizes_chars() {
+        let mut lexer1 = Token::lexer(r#""hello""#);
+        assert_eq!(lexer1.next(), Some(Ok(Token::Chars)));
     }
 }

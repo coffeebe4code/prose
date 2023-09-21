@@ -123,7 +123,6 @@ impl IRSource {
         let mut ctx = FunctionBuilderContext::new();
         let mut sig = Signature::new(CallConv::SystemV);
         let name = UserFuncName::user(self.package, self.fname);
-        // TODO:: put the optional vec of expr directly on funcdef
         if let Some(val) = func_def.args {
             val.iter()
                 .for_each(|_x| sig.params.push(AbiParam::new(I64)));

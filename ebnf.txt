@@ -5,7 +5,6 @@
 <args> ::= (<arg> ("," <arg>)*)?
 <arg> ::= ("self" | <ident>) (":" ("*" | "&" | "let" | "const")? <type>)?
 <inner_assign> ::= ( "const" | "let") <ident> "=" <or> ";" 
-<expr> ::= <inner_assign> | <return> 
 <block> ::= "{" <inner_assign>* <return> "}"
 <return> ::= "return" <or> ";"
 <or> ::= <and> ("||" <and>)*
