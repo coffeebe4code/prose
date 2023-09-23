@@ -1,29 +1,19 @@
 use std::path::Path;
-pub fn link(obj_file: &Path, output: &Path) -> Result<(), std::io::Error> {
-    use std::io::{Error, ErrorKind};
+
+pub fn link(obj_file: &Path, output: &Path) -> () {
     use std::process::Command;
-    let mut cmd = "cc";
+    println!("output {}", output.to_str().unwrap());
 
     // link the .o file using host linker
     if cfg!(windows) {
-        cmd = "cl.exe";
-    } 
-    let status = Command::new(cmd)
-        .args(&[&obj_file, Path::new("-o"), output])
-        .status()
-        .map_err(|err| {
-            if err.kind() == ErrorKind::NotFound {
-                Error::new(
-                    ErrorKind::NotFound,
-                    "could not find host cc (for linking). Is it on your PATH?",
-                )
-            } else {
-                err
-            }
-        })?;
-    if !status.success() {
-        Err(Error::new(ErrorKind::Other, "linking program failed"))
+    Command::new("link")
+        .arg(format!("{}{}{}","/out:", output.to_str().unwrap(), ".exe"))
+        .arg(&obj_file)
+        .arg("/entry:main")
+        .status().unwrap();
     } else {
-        Ok(())
+    Command::new("cc")
+        .args(&[&obj_file, Path::new("-o"), output])
+        .status().unwrap();
     }
 }

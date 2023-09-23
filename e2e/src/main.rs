@@ -22,7 +22,7 @@ fn main() {
                 create_dir(".ty-cache").unwrap();
             }
             write(".ty-cache/main.o", build_main(result)).unwrap();
-            link(Path::new(".ty-cache/main.o"), Path::new(".ty-cache/main")).unwrap();
+            link(Path::new(".ty-cache/main.o"), Path::new(".ty-cache/main"));
             let status = Command::new("./.ty-cache/main").args(&[""]).status();
             println!("Status {:?}", status);
         }
