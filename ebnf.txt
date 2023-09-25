@@ -1,6 +1,9 @@
 // https://bnfplayground.pauliankline.com/
-<top_decl> ::= "pub"? ("const" | "let") <ident> "=" <fn>
+<top_decl> ::= "pub"? ("const" | "let") <ident> "=" <fn> | <struct> | <or>
 <fn> ::= "fn" "(" <args>? ")" <block>
+<struct> ::= "struct" "{" <declarators>? "}"
+<declarators> ::= (<declarator> ("," <declarator>)*)?
+<declarator> ::= "pub"? <ident>
 <args> ::= (<arg> ("," <arg>)*)?
 <arg> ::= ("self" | <ident>) (":" ("*" | "&" | "let" | "const")? <type>)?
 <inner_decl> ::= ( "const" | "let") <ident> "=" <or> ";" 

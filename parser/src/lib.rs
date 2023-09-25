@@ -16,19 +16,40 @@ impl<'s> Parser<'s> {
     pub fn new(lexer: ProseLexer<'s>) -> Self {
         Parser { lexer }
     }
-    pub fn ret(&mut self) -> ResultExpr {
+    pub fn _return(&mut self) -> ResultExpr {
         let span = self
             .lexer
             .collect_if(Token::Return)
             .expect_token("expected return keyword".to_string())?;
-        self.or_cmp().result_or(|expr| {
+        self.or().result_or(|expr| {
             self.lexer
                 .collect_if(Token::SColon)
                 .expect_token("expected ';'".to_string())?;
             result_expr!(RetOp, span, expr)
         })
     }
-    pub fn func(&mut self) -> ResultExpr {
+    pub fn _struct(
+        &mut self,
+        visibility: Option<Lexeme>,
+        mutability: Lexeme,
+        identifier: Box<Expr>,
+    ) -> ResultExpr {
+        let _ = self
+            .lexer
+            .collect_if(Token::Struct)
+            .expect_token("expected struct keyword".to_string())?;
+        let _ = self
+            .lexer
+            .collect_if(Token::OBrace)
+            .expect_token("expected '{'".to_string())?;
+        let decls = self.declarators()?;
+        let _ = self
+            .lexer
+            .collect_if(Token::CBrace)
+            .expect_token("expected '}'".to_string())?;
+        result_expr!(StructDef, visibility, mutability, identifier, decls)
+    }
+    pub fn top_decl(&mut self) -> ResultExpr {
         let has_pub = self.lexer.collect_if(Token::Pub);
         let mutability = self
             .lexer
@@ -41,10 +62,21 @@ impl<'s> Parser<'s> {
             .lexer
             .collect_if(Token::As)
             .expect_token("expected =".to_string())?;
-        let _ = self
-            .lexer
-            .collect_if(Token::Func)
-            .expect_token("expected fn keyword".to_string())?;
+        if let Some(val) = self.lexer.collect_of_if(&[Token::Struct, Token::Func]) {
+            match val.token {
+                Token::Struct => return self._struct(has_pub, mutability, identifier),
+                Token::Func => return self._fn(has_pub, mutability, identifier),
+                _ => panic!("developer error"),
+            }
+        }
+        self.or()
+    }
+    pub fn _fn(
+        &mut self,
+        visibility: Option<Lexeme>,
+        mutability: Lexeme,
+        identifier: Box<Expr>,
+    ) -> ResultExpr {
         let _ = self
             .lexer
             .collect_if(Token::OParen)
@@ -53,15 +85,32 @@ impl<'s> Parser<'s> {
         let _ = self
             .lexer
             .collect_if(Token::CParen)
-            .expect_token("expected '('".to_string())?;
+            .expect_token("expected ')'".to_string())?;
         let block = self.block()?;
-        result_expr!(FuncDef, has_pub, mutability, identifier, args, block)
+        result_expr!(FuncDef, visibility, mutability, identifier, args, block)
     }
-    pub fn ty(&mut self) -> ResultExpr {
+    pub fn _type(&mut self) -> ResultExpr {
         self.lexer
             .collect_of_if(&[Token::Num, Token::Any, Token::U64])
             .convert_expr(|span| expr!(TypeSimple, span))
             .convert_to_result("expected type".to_string())
+    }
+    pub fn declarators(&mut self) -> Result<Option<Vec<Box<Expr>>>> {
+        if let Some(local) = self.declarator() {
+            let mut decl_list: Vec<Box<Expr>> = vec![];
+            decl_list.push(local);
+            while let Some(_comma) = self.lexer.collect_if(Token::Comma) {
+                decl_list.push(
+                    self.declarator()
+                        .expect_expr("expected argument definition".to_string())?,
+                );
+            }
+            return Ok(Some(decl_list));
+        }
+        Ok(None)
+    }
+    pub fn declarator(&mut self) -> OptExpr {
+        self.ident()
     }
     pub fn args(&mut self) -> Result<Option<Vec<Box<Expr>>>> {
         if let Some(arg_local) = self.arg() {
@@ -90,7 +139,7 @@ impl<'s> Parser<'s> {
                 .lexer
                 .collect_of_if(&[Token::As])
                 .expect_token("expected =".to_string())?;
-            return self.or_cmp().convert_to_result_opt().result_opt_or(|asgn| {
+            return self.or().convert_to_result_opt().result_opt_or(|asgn| {
                 self.lexer
                     .collect_if(Token::SColon)
                     .expect_token("expected ';'".to_string())?;
@@ -112,7 +161,7 @@ impl<'s> Parser<'s> {
             }
         }
 
-        if let Ok(x) = self.ret() {
+        if let Ok(x) = self._return() {
             exprs.push(x);
         }
         self.lexer
@@ -120,17 +169,17 @@ impl<'s> Parser<'s> {
             .expect_token("expected '}'".to_string())?;
         result_expr!(Block, exprs)
     }
-    pub fn or_cmp(&mut self) -> ResultExpr {
-        self.and_cmp().result_or(|mut left| {
+    pub fn or(&mut self) -> ResultExpr {
+        self.and().result_or(|mut left| {
             while let Some(bin) = self.lexer.collect_if(Token::Or) {
                 left = self
-                    .and_cmp()
+                    .and()
                     .result_or(|right| result_expr!(BinOp, left, bin, right))?
             }
             Ok(left)
         })
     }
-    pub fn and_cmp(&mut self) -> ResultExpr {
+    pub fn and(&mut self) -> ResultExpr {
         self.equality().result_or(|mut left| {
             while let Some(bin) = self.lexer.collect_if(Token::And) {
                 left = self
@@ -570,7 +619,7 @@ mod tests {
     fn it_should_parse_fn() {
         let lexer = ProseLexer::new("pub const add = fn(x) { return x; }");
         let mut parser = Parser::new(lexer);
-        let result = parser.func();
+        let result = parser.top_decl();
         let expr = expr!(
             FuncDef,
             Some(Lexeme {

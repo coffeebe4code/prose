@@ -96,6 +96,8 @@ pub enum Token {
     Contract,
     #[token("fn")]
     Func,
+    #[token("struct")]
+    Struct,
 
     #[token("|>")]
     Split,
