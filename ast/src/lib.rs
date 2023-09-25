@@ -18,6 +18,30 @@ impl AsDef {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct StructDef {
+    pub visibility: Option<Lexeme>,
+    pub mutability: Lexeme,
+    pub identifier: Box<Expr>,
+    pub declarators: Option<Vec<Box<Expr>>>,
+}
+
+impl StructDef {
+    pub fn new(
+        visibility: Option<Lexeme>,
+        mutability: Lexeme,
+        identifier: Box<Expr>,
+        declarators: Option<Vec<Box<Expr>>>,
+    ) -> Self {
+        StructDef {
+            visibility,
+            mutability,
+            identifier,
+            declarators,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct FuncDef {
     pub visibility: Option<Lexeme>,
     pub mutability: Lexeme,
@@ -144,6 +168,7 @@ pub enum Expr {
     TypeSimple(TypeSimple),
     ArgsDef(ArgsDef),
     FuncDef(FuncDef),
+    StructDef(StructDef),
     AsDef(AsDef),
 }
 

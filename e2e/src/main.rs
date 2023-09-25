@@ -12,7 +12,7 @@ use std::process::Command;
 fn main() {
     let lex = ProseLexer::new("pub const main = fn() { let m = 7; let x = 5; return x + m; }");
     let mut parse = Parser::new(lex);
-    let ast_parsed = parse.func().unwrap();
+    let ast_parsed = parse.top_decl().unwrap();
     let mut ir = IRSource::new(0, SLT::new());
     match *ast_parsed {
         Expr::FuncDef(val) => {
